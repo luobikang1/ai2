@@ -27,7 +27,8 @@ import {
   Search,
   BookOpen,
   Eye,
-  Heart
+  Heart,
+  Zap
 } from 'lucide-react'
 import { ALL_MODELS, AIModel } from './modelsData'
 
@@ -110,7 +111,8 @@ const translations = {
     modelType: '模型类型',
     baseModelLabel: '底模',
     author: '作者',
-    applyModel: '选用该模型并加词',
+    applyModel: '选定并配置参数',
+    applyAndGenerate: '一键应用并直接绘图',
     savedModelsTitle: '已保存/收藏的模型',
     savedModelsEmpty: '您还没有收藏任何模型，在下方列表中点击心形图标收藏吧！',
     prevPage: '上一页',
@@ -194,7 +196,8 @@ const translations = {
     modelType: 'Type',
     baseModelLabel: 'Base',
     author: 'Author',
-    applyModel: 'Use Model & Load Prompts',
+    applyModel: 'Use & Configure',
+    applyAndGenerate: 'Apply & Direct Draw',
     savedModelsTitle: 'My Saved Models',
     savedModelsEmpty: 'No bookmarked models yet. Click the heart icon below to save your favorites!',
     prevPage: 'Prev',
@@ -506,7 +509,7 @@ export default function App() {
     localStorage.setItem('whitefox_saved_model_ids', JSON.stringify(updated))
   }
 
-  const applyModelToGenerator = (model: AIModel) => {
+  const applyModelToGenerator = (model: AIModel): string => {
     setSelectedActiveModel(model)
     // Dynamic Prompt insertion based on model type
     let promptSuffix = `, trained with model style [${model.name}]`
@@ -516,8 +519,10 @@ export default function App() {
       promptSuffix = `, in the visual aesthetic style of ${model.name}`
     }
 
+    let nextPrompt = prompt
     if (!prompt.includes(promptSuffix)) {
-      setPrompt(prev => prev + promptSuffix)
+      nextPrompt = prompt + promptSuffix
+      setPrompt(nextPrompt)
     }
 
     // Auto adapt base model parameters
@@ -530,11 +535,11 @@ export default function App() {
       setSelectedSize('512x512')
     }
 
-    alert(`已选用模型 ${model.name}！已自动升级分辨率和迭代步数设置。`)
+    return nextPrompt
   }
 
   // AI Generation Core Function
-  const handleGenerateArt = async () => {
+  const handleGenerateArt = async (overridePrompt?: string) => {
     saveCredentials()
     setGenerating(true)
     setGenError(null)
@@ -552,7 +557,7 @@ export default function App() {
     }
 
     const payload = {
-      prompt,
+      prompt: overridePrompt || prompt,
       negative_prompt: negativePrompt,
       width: w,
       height: h,
@@ -593,7 +598,7 @@ export default function App() {
         // Add to history records
         const record = {
           id: Date.now().toString(),
-          prompt,
+          prompt: overridePrompt || prompt,
           mode: drawMode,
           image: data.image,
           timestamp: new Date().toLocaleTimeString(),
@@ -613,6 +618,16 @@ export default function App() {
     } finally {
       setGenerating(false)
     }
+  }
+
+  // Quick 1-click model application + generate trigger
+  const handleModelApplyAndGenerate = async (model: AIModel) => {
+    // 1. Set states and return updated prompt string instantly
+    const updatedPrompt = applyModelToGenerator(model)
+    // 2. Scroll smooth to viewport
+    window.scrollTo({ top: 120, behavior: 'smooth' })
+    // 3. Trigger immediate generation passing the direct prompt
+    await handleGenerateArt(updatedPrompt)
   }
 
   // Delete History item
@@ -1248,7 +1263,7 @@ export default function App() {
                 <div className="text-center max-w-sm px-4 space-y-2">
                   <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
                   <p className="text-xs text-red-400 font-semibold">{genError}</p>
-                  <button onClick={handleGenerateArt} className="text-[10px] underline text-slate-400 hover:text-white">Retry / 重试</button>
+                  <button onClick={() => handleGenerateArt()} className="text-[10px] underline text-slate-400 hover:text-white">Retry / 重试</button>
                 </div>
               ) : generatedImage ? (
                 <>
@@ -1320,7 +1335,7 @@ export default function App() {
 
             {/* Big Trigger Button */}
             <button
-              onClick={handleGenerateArt}
+              onClick={() => handleGenerateArt()}
               disabled={generating || !prompt}
               className="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg transition transform active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2.5"
             >
@@ -1413,7 +1428,7 @@ export default function App() {
             </div>
 
             {/* Models rendering (Exactly 20 visible items) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
               {currentVisibleModels.map((model) => {
                 const isSaved = savedModelIds.includes(model.id);
                 const isActive = selectedActiveModel?.id === model.id;
@@ -1444,14 +1459,25 @@ export default function App() {
                       <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{model.description}</p>
                     </div>
 
-                    <div className="flex gap-2 items-center border-t border-slate-850/40 pt-2 mt-auto">
-                      <span className="text-[9px] text-slate-500 truncate max-w-[90px]">{t.author}: {model.creator}</span>
-                      <button
-                        onClick={() => applyModelToGenerator(model)}
-                        className="text-[9px] bg-rose-600/15 text-rose-350 hover:bg-rose-600 hover:text-white px-2 py-1 rounded ml-auto transition"
-                      >
-                        {t.applyModel}
-                      </button>
+                    <div className="flex flex-col gap-2 border-t border-slate-850/40 pt-2.5 mt-auto">
+                      <span className="text-[9px] text-slate-500 truncate">{t.author}: {model.creator}</span>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => applyModelToGenerator(model)}
+                          className="flex-1 text-[9px] bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1 rounded transition font-medium"
+                        >
+                          {t.applyModel}
+                        </button>
+
+                        {/* New Internet Model quick generating trigger button */}
+                        <button
+                          onClick={() => handleModelApplyAndGenerate(model)}
+                          className="flex-1 text-[9px] bg-gradient-to-r from-rose-500 to-amber-550 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-1 rounded flex items-center justify-center gap-0.5 transition"
+                        >
+                          <Zap className="w-2.5 h-2.5 fill-white" />
+                          <span>{t.applyAndGenerate}</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1492,7 +1518,7 @@ export default function App() {
             {/* Prompt list */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-1">
               {promptLibrary.map((p) => (
-                <div key={p.id} className="bg-slate-950 border border-slate-850 p-2.5 rounded-xl flex flex-col justify-between group relative">
+                <div key={p.id} className="bg-slate-950 border border-slate-855 p-2.5 rounded-xl flex flex-col justify-between group relative">
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-[11px] font-bold text-slate-200">{p.name}</span>
@@ -1738,7 +1764,7 @@ export default function App() {
                         className="bg-slate-900 hover:bg-slate-850 text-red-450 p-1 rounded hover:text-red-500"
                         title={t.delete}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
