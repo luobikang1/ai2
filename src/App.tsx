@@ -23,8 +23,13 @@ import {
   Layers,
   HelpCircle,
   TrendingUp,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Search,
+  BookOpen,
+  Eye,
+  Heart
 } from 'lucide-react'
+import { ALL_MODELS, AIModel } from './modelsData'
 
 // Translation structure for bilingual support (Chinese/English)
 const translations = {
@@ -96,7 +101,21 @@ const translations = {
     refImage: '上传参考图',
     promptSaved: '提示词保存成功',
     configRestored: '已恢复默认设置',
-    loginSuccess: '登录成功'
+    loginSuccess: '登录成功',
+
+    // Model Hub Translation Addition
+    modelHubTitle: '互联网模型探索中心',
+    modelHubSub: '已自动检索保存 500 条高质量模型，当前可视 20 条，支持精准搜索与保存。',
+    searchPlaceholder: '输入关键词搜索500条大模型...',
+    modelType: '模型类型',
+    baseModelLabel: '底模',
+    author: '作者',
+    applyModel: '选用该模型并加词',
+    savedModelsTitle: '已保存/收藏的模型',
+    savedModelsEmpty: '您还没有收藏任何模型，在下方列表中点击心形图标收藏吧！',
+    prevPage: '上一页',
+    nextPage: '下一页',
+    pageIndicator: '第 {current} / {total} 页'
   },
   en: {
     title: 'White Fox AI II - Intelligent Painting Panel',
@@ -166,7 +185,21 @@ const translations = {
     refImage: 'Upload reference image',
     promptSaved: 'Prompt saved successfully',
     configRestored: 'Configuration restored to defaults',
-    loginSuccess: 'Login successful'
+    loginSuccess: 'Login successful',
+
+    // Model Hub Translation Addition
+    modelHubTitle: 'Internet Model Hub',
+    modelHubSub: '500 models pre-saved. Showing 20 active options. Fully searchable & saveable.',
+    searchPlaceholder: 'Search 500 AI checkpoints/LoRAs...',
+    modelType: 'Type',
+    baseModelLabel: 'Base',
+    author: 'Author',
+    applyModel: 'Use Model & Load Prompts',
+    savedModelsTitle: 'My Saved Models',
+    savedModelsEmpty: 'No bookmarked models yet. Click the heart icon below to save your favorites!',
+    prevPage: 'Prev',
+    nextPage: 'Next',
+    pageIndicator: 'Page {current} of {total}'
   }
 }
 
@@ -231,6 +264,14 @@ export default function App() {
   const [scanning, setScanning] = useState(false)
   const [selectedApiId, setSelectedApiId] = useState('pollinations-flux')
 
+  // Model Hub states (500 items database, 20 visible items)
+  const [modelsSearch, setModelsSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('All')
+  const [selectedType, setSelectedType] = useState<string>('All')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [savedModelIds, setSavedModelIds] = useState<string[]>([])
+  const [selectedActiveModel, setSelectedActiveModel] = useState<AIModel | null>(null)
+
   // Prompt Library states
   const [promptLibrary, setPromptLibrary] = useState<any[]>(INITIAL_PROMPTS)
   const [newPromptName, setNewPromptName] = useState('')
@@ -276,6 +317,14 @@ export default function App() {
     setOpenaiKey(localStorage.getItem('whitefox_openai_key') || '')
     setMjUrl(localStorage.getItem('whitefox_mj_url') || '')
     setMjKey(localStorage.getItem('whitefox_mj_key') || '')
+
+    // Load saved models / bookmarks from localStorage
+    const savedMids = localStorage.getItem('whitefox_saved_model_ids')
+    if (savedMids) {
+      try {
+        setSavedModelIds(JSON.parse(savedMids))
+      } catch (e) {}
+    }
 
     // Load customized prompts from localStorage
     const savedLibrary = localStorage.getItem('whitefox_prompt_library')
@@ -359,6 +408,7 @@ export default function App() {
     setSelectedApiId('pollinations-flux')
     setBgColor('#0f172a')
     setCustomBgColor('#0f172a')
+    setSelectedActiveModel(null)
     localStorage.removeItem('whitefox_bg_color')
     alert(translations[lang].configRestored)
   }
@@ -444,6 +494,45 @@ export default function App() {
     localStorage.setItem('whitefox_prompt_library', JSON.stringify(updated))
   }
 
+  // Model Hub Helper functions
+  const toggleSaveModel = (modelId: string) => {
+    let updated: string[] = []
+    if (savedModelIds.includes(modelId)) {
+      updated = savedModelIds.filter(id => id !== modelId)
+    } else {
+      updated = [...savedModelIds, modelId]
+    }
+    setSavedModelIds(updated)
+    localStorage.setItem('whitefox_saved_model_ids', JSON.stringify(updated))
+  }
+
+  const applyModelToGenerator = (model: AIModel) => {
+    setSelectedActiveModel(model)
+    // Dynamic Prompt insertion based on model type
+    let promptSuffix = `, trained with model style [${model.name}]`
+    if (model.type === 'LoRA') {
+      promptSuffix = `, lora: ${model.name}:0.85`
+    } else if (model.type === 'Style') {
+      promptSuffix = `, in the visual aesthetic style of ${model.name}`
+    }
+
+    if (!prompt.includes(promptSuffix)) {
+      setPrompt(prev => prev + promptSuffix)
+    }
+
+    // Auto adapt base model parameters
+    if (model.baseModel.includes('SDXL')) {
+      setSelectedSize('1024x1024')
+    } else if (model.baseModel.includes('Flux')) {
+      setSelectedSize('1024x1024')
+      setSteps(20)
+    } else {
+      setSelectedSize('512x512')
+    }
+
+    alert(`已选用模型 ${model.name}！已自动升级分辨率和迭代步数设置。`)
+  }
+
   // AI Generation Core Function
   const handleGenerateArt = async () => {
     saveCredentials()
@@ -479,7 +568,10 @@ export default function App() {
       cf_id: cfId,
       openai_key: openaiKey,
       mj_url: mjUrl,
-      mj_key: mjKey
+      mj_key: mjKey,
+      // Pass selected model data
+      activeModelName: selectedActiveModel ? selectedActiveModel.name : null,
+      activeModelType: selectedActiveModel ? selectedActiveModel.type : null
     }
 
     try {
@@ -506,7 +598,8 @@ export default function App() {
           image: data.image,
           timestamp: new Date().toLocaleTimeString(),
           size: `${w}x${h}`,
-          provider: provider === 'free' ? `Free (${selectedApiId})` : provider
+          provider: provider === 'free' ? `Free (${selectedApiId})` : provider,
+          modelApplied: selectedActiveModel ? selectedActiveModel.name : 'Default'
         }
         const updatedHistory = [record, ...history]
         setHistory(updatedHistory)
@@ -579,6 +672,39 @@ export default function App() {
     }, 400)
   }
 
+  // Model Hub filtering logic: 500 items, pagination with exactly 20 items per view.
+  const filteredModels = ALL_MODELS.filter((model) => {
+    const matchesSearch =
+      model.name.toLowerCase().includes(modelsSearch.toLowerCase()) ||
+      model.creator.toLowerCase().includes(modelsSearch.toLowerCase()) ||
+      model.description.toLowerCase().includes(modelsSearch.toLowerCase()) ||
+      model.tags.some(t => t.toLowerCase().includes(modelsSearch.toLowerCase()));
+
+    const matchesCategory = selectedCategory === 'All' || model.category === selectedCategory;
+    const matchesType = selectedType === 'All' || model.type === selectedType;
+
+    return matchesSearch && matchesCategory && matchesType;
+  });
+
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(filteredModels.length / itemsPerPage) || 1;
+  const currentVisibleModels = filteredModels.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Auto-cap current page if results change
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [modelsSearch, selectedCategory, selectedType, totalPages]);
+
+  // Bookmarked models objects list
+  const bookmarkedModelsList = ALL_MODELS.filter(m => savedModelIds.includes(m.id));
+
+  const t = translations[lang]
+
   // Render password portal
   if (!isAuthorized) {
     return (
@@ -591,11 +717,11 @@ export default function App() {
           </div>
 
           <h2 className="text-3xl font-extrabold text-center tracking-tight mb-2">白狐AI二</h2>
-          <p className="text-slate-400 text-center text-sm mb-6">{translations[lang].subtitle}</p>
+          <p className="text-slate-400 text-center text-sm mb-6">{t.subtitle}</p>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-slate-400 mb-2">{translations[lang].passwordPrompt}</label>
+              <label className="block text-sm text-slate-400 mb-2">{t.passwordPrompt}</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <Key className="h-5 w-5 text-slate-500" />
@@ -605,7 +731,7 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  placeholder={translations[lang].passwordPlaceholder}
+                  placeholder={t.passwordPlaceholder}
                   required
                 />
               </div>
@@ -622,7 +748,7 @@ export default function App() {
               type="submit"
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200"
             >
-              {translations[lang].submit}
+              {t.submit}
             </button>
           </form>
 
@@ -641,8 +767,6 @@ export default function App() {
       </div>
     )
   }
-
-  const t = translations[lang]
 
   return (
     <div className="min-h-screen text-slate-100 transition-colors duration-500 pb-16" style={{ backgroundColor: bgColor }}>
@@ -827,6 +951,22 @@ export default function App() {
                 placeholder={t.negativePromptPlaceholder}
               />
             </div>
+
+            {/* Selected Active Model Indicator */}
+            {selectedActiveModel && (
+              <div className="bg-emerald-900/20 border border-emerald-850 p-2.5 rounded-xl flex items-center justify-between text-xs text-emerald-300">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-semibold">激活模型: {selectedActiveModel.name}</span>
+                </div>
+                <button
+                  onClick={() => setSelectedActiveModel(null)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
           </div>
 
@@ -1190,6 +1330,158 @@ export default function App() {
 
           </div>
 
+          {/* Model Hub Section (500 preloaded models, 20 visible search options) */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+            <div className="border-b border-slate-800 pb-2">
+              <h3 className="text-sm font-bold flex items-center gap-2 text-rose-400">
+                <Layers className="w-4 h-4" />
+                {t.modelHubTitle}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">{t.modelHubSub}</p>
+            </div>
+
+            {/* Bookmarked/Saved Models Mini-Section */}
+            {bookmarkedModelsList.length > 0 && (
+              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
+                  {t.savedModelsTitle}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {bookmarkedModelsList.map((bm) => (
+                    <div
+                      key={bm.id}
+                      className="bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1.5 hover:border-slate-600 transition"
+                    >
+                      <button
+                        onClick={() => applyModelToGenerator(bm)}
+                        className="font-semibold text-slate-200 hover:text-white"
+                      >
+                        {bm.name}
+                      </button>
+                      <button
+                        onClick={() => toggleSaveModel(bm.id)}
+                        className="text-slate-500 hover:text-rose-450"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Search Bar & Categories */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  value={modelsSearch}
+                  onChange={(e) => setModelsSearch(e.target.value)}
+                  placeholder={t.searchPlaceholder}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-600 focus:outline-none"
+                />
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-1.5 text-[10px]">
+                {['All', 'Realistic', 'Anime', '3D / Game', 'Sci-Fi', 'Fantasy', 'Artistic', 'Design'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2 py-1 rounded ${selectedCategory === cat ? 'bg-rose-500 text-white' : 'bg-slate-950 text-slate-400 hover:text-slate-200'}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sub filters */}
+              <div className="flex flex-wrap gap-1 text-[9px] text-slate-400 border-t border-slate-850/60 pt-1.5">
+                <span className="mr-1 py-0.5">{t.modelType}:</span>
+                {['All', 'Checkpoint', 'LoRA', 'Style', 'Textual Inversion'].map((tp) => (
+                  <button
+                    key={tp}
+                    onClick={() => setSelectedType(tp)}
+                    className={`px-1.5 py-0.5 rounded ${selectedType === tp ? 'border border-rose-500/50 text-rose-300' : 'hover:text-white'}`}
+                  >
+                    {tp}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Models rendering (Exactly 20 visible items) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+              {currentVisibleModels.map((model) => {
+                const isSaved = savedModelIds.includes(model.id);
+                const isActive = selectedActiveModel?.id === model.id;
+
+                return (
+                  <div
+                    key={model.id}
+                    className={`bg-slate-950 border p-3 rounded-xl flex flex-col justify-between transition-all ${isActive ? 'border-emerald-500/50 shadow-md shadow-emerald-900/10' : 'border-slate-850 hover:border-slate-700'}`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-1 mb-1">
+                        <span className="text-[11px] font-bold text-slate-100 truncate max-w-[140px]">{model.name}</span>
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={() => toggleSaveModel(model.id)}
+                            className={`p-1 rounded hover:bg-slate-900 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
+                          >
+                            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500' : ''}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1.5 py-0.2 rounded-md font-bold">{model.type}</span>
+                        <span className="text-[8px] bg-slate-900 text-sky-400 border border-slate-800 px-1.5 py-0.2 rounded-md font-bold">{model.baseModel}</span>
+                      </div>
+
+                      <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{model.description}</p>
+                    </div>
+
+                    <div className="flex gap-2 items-center border-t border-slate-850/40 pt-2 mt-auto">
+                      <span className="text-[9px] text-slate-500 truncate max-w-[90px]">{t.author}: {model.creator}</span>
+                      <button
+                        onClick={() => applyModelToGenerator(model)}
+                        className="text-[9px] bg-rose-600/15 text-rose-350 hover:bg-rose-600 hover:text-white px-2 py-1 rounded ml-auto transition"
+                      >
+                        {t.applyModel}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center bg-slate-950 p-2 rounded-xl border border-slate-850 text-xs">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="bg-slate-900 hover:bg-slate-850 text-slate-300 disabled:opacity-40 px-2.5 py-1 rounded transition"
+              >
+                {t.prevPage}
+              </button>
+              <span className="text-slate-400 text-[10px] font-mono">
+                {t.pageIndicator.replace('{current}', currentPage.toString()).replace('{total}', totalPages.toString())}
+                {` (共 ${filteredModels.length} 项)`}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="bg-slate-900 hover:bg-slate-850 text-slate-300 disabled:opacity-40 px-2.5 py-1 rounded transition"
+              >
+                {t.nextPage}
+              </button>
+            </div>
+
+          </div>
+
           {/* Prompt Library */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
             <h3 className="text-sm font-bold flex items-center gap-2 border-b border-slate-800 pb-2">
@@ -1227,7 +1519,7 @@ export default function App() {
             </div>
 
             {/* Quick add prompt bar */}
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 space-y-2">
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-855 space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="text"
