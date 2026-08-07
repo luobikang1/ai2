@@ -8,18 +8,18 @@ export interface AIModel {
   description: string;
   tags: string[];
   url: string;
-  thumbnailSvg: string; // inline SVG thumbnail/schematic diagram to save traffic
+  thumbnailUrl: string; // Real generated content image URL to represent model preview
 }
 
-// Generate category-specific lightweight schematic diagram SVG icons to represent model thumbnails
-const CATEGORY_SVGS: Record<string, string> = {
-  'Realistic': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-rose-500 fill-none stroke-current stroke-2"><circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="10"/><path d="M20 20 L40 20 M80 20 L80 40 M20 80 L20 60"/></svg>`,
-  'Anime': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-purple-400 fill-none stroke-current stroke-2"><path d="M50 15 L60 40 L85 45 L65 65 L70 90 L50 75 L30 90 L35 65 L15 45 L40 40 Z"/><circle cx="50" cy="50" r="5" class="fill-current"/></svg>`,
-  '3D / Game': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-sky-400 fill-none stroke-current stroke-2"><path d="M50 15 L85 35 L85 75 L50 95 L15 75 L15 35 Z M50 15 L50 95 M15 35 L50 55 L85 35"/></svg>`,
-  'Sci-Fi': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-emerald-450 fill-none stroke-current stroke-2"><path d="M20 50 H80 M50 20 V80 M35 35 L65 65 M35 65 L65 35"/><circle cx="50" cy="50" r="15" class="fill-slate-950"/></svg>`,
-  'Fantasy': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-amber-400 fill-none stroke-current stroke-2"><path d="M50 10 L80 35 L50 60 L20 35 Z M50 60 V90 M30 80 H70"/></svg>`,
-  'Artistic': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-indigo-400 fill-none stroke-current stroke-2"><path d="M25 75 C40 45, 60 45, 75 25 M30 65 L45 80"/><circle cx="75" cy="25" r="8" class="fill-current"/></svg>`,
-  'Design': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-teal-400 fill-none stroke-current stroke-2"><rect x="20" y="20" width="60" height="60" rx="5"/><path d="M35 50 H65 M50 35 V65"/></svg>`
+// Beautiful stable generated/AI-style Unsplash preview images for each category
+const CATEGORY_IMAGES: Record<string, string> = {
+  'Realistic': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80', // High-fidelity portrait
+  'Anime': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=120&h=120&q=80', // Anime/illustrated vibrant character
+  '3D / Game': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80', // 3D render clay style
+  'Sci-Fi': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=120&h=120&q=80', // Cyberpunk neon glow robotics
+  'Fantasy': 'https://images.unsplash.com/photo-1519074002996-a69e7ac46a42?auto=format&fit=crop&w=120&h=120&q=80', // Dreamy mystical castle
+  'Artistic': 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=120&h=120&q=80', // Masterpiece fine oil painting
+  'Design': 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=120&h=120&q=80'  // Minimalist high-end interior architecture
 };
 
 const MODEL_FAMILIES = [
@@ -210,7 +210,7 @@ export const generate500Models = (): AIModel[] => {
     if (i % 5 === 0) combinedTags.push('latest');
 
     const cat = template.category as AIModel['category'];
-    const thumbnailSvg = CATEGORY_SVGS[cat] || CATEGORY_SVGS['Realistic'];
+    const thumbnailUrl = CATEGORY_IMAGES[cat] || CATEGORY_IMAGES['Realistic'];
 
     models.push({
       id: modelId,
@@ -222,7 +222,7 @@ export const generate500Models = (): AIModel[] => {
       description: `[Version ${suffix}] Updated model branch. ${template.description} Fine-tuned for better performance on ${baseModel}.`,
       tags: Array.from(new Set(combinedTags)),
       url: template.url,
-      thumbnailSvg
+      thumbnailUrl
     });
   }
 

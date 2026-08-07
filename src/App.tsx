@@ -84,18 +84,6 @@ const translations = {
     addPrompt: '添加提示词',
     promptName: '提示名称',
     promptContent: '提示词内容',
-    trainingArea: 'LoRA 模型训练功能区 (Simulated)',
-    datasetUpload: '上传数据集 (ZIP / 多图)',
-    loraName: 'LoRA 模型名称',
-    baseModel: '底模选择',
-    learningRate: '学习率',
-    trainSteps: '训练步数',
-    triggerWord: '触发词 (Trigger Word)',
-    startTraining: '开始训练模型',
-    trainingLogs: '训练日志输出',
-    trainingLoss: '实时训练损失 (Loss)',
-    trainingProgress: '训练进度',
-    epoch: '轮次',
     statusOnline: '在线',
     statusOffline: '不在线',
     scanPlaceholder: '点击扫描测试API延迟...',
@@ -107,7 +95,7 @@ const translations = {
 
     // Model Hub Translation Addition
     modelHubTitle: '互联网模型探索中心',
-    modelHubSub: '已自动检索保存 500 条高质量模型，内置超轻量示意缩略图，不耗费额外流量。支持精准搜索与保存。',
+    modelHubSub: '已自动检索保存 500 条高质量模型，内置真实精美生成效果图作为示意。支持精准搜索与保存。',
     searchPlaceholder: '输入关键词搜索500条大模型...',
     modelType: '模型类型',
     baseModelLabel: '底模',
@@ -119,6 +107,8 @@ const translations = {
     prevPage: '上一页',
     nextPage: '下一页',
     pageIndicator: '第 {current} / {total} 页',
+    oneClickTranslate: '一键中文翻译',
+    translatedLabel: '已翻译',
 
     // Spell Selector
     spellTitle: '高级咒语魔法施法器 (Spellbook Selector)',
@@ -175,18 +165,6 @@ const translations = {
     addPrompt: 'Add Prompt',
     promptName: 'Prompt Name',
     promptContent: 'Prompt Content',
-    trainingArea: 'LoRA Model Training Area (Simulated)',
-    datasetUpload: 'Upload Dataset (ZIP / Images)',
-    loraName: 'LoRA Name',
-    baseModel: 'Base Model',
-    learningRate: 'Learning Rate',
-    trainSteps: 'Training Steps',
-    triggerWord: 'Trigger Word',
-    startTraining: 'Start Model Training',
-    trainingLogs: 'Training Logs Output',
-    trainingLoss: 'Live Loss Value',
-    trainingProgress: 'Training Progress',
-    epoch: 'Epoch',
     statusOnline: 'Online',
     statusOffline: 'Offline',
     scanPlaceholder: 'Click scan to test API latency...',
@@ -198,7 +176,7 @@ const translations = {
 
     // Model Hub Translation Addition
     modelHubTitle: 'Internet Model Hub',
-    modelHubSub: '500 models pre-saved. Lightweight inline schematics embedded. Fully searchable & saveable.',
+    modelHubSub: '500 models pre-saved. Elegant generated sample images embedded as previews. Fully searchable & saveable.',
     searchPlaceholder: 'Search 500 AI checkpoints/LoRAs...',
     modelType: 'Type',
     baseModelLabel: 'Base',
@@ -210,6 +188,8 @@ const translations = {
     prevPage: 'Prev',
     nextPage: 'Next',
     pageIndicator: 'Page {current} of {total}',
+    oneClickTranslate: 'Translate to CN',
+    translatedLabel: 'CN',
 
     // Spell Selector
     spellTitle: 'Spellbook Magic Styler',
@@ -260,6 +240,145 @@ const PRESET_APIS_INFO = [
   { id: 'prodia-free', name: 'Prodia Public SD', type: 'prodia' },
   { id: 'pollinations-niche', name: 'Pollinations (Cyberpunk)', model: 'cyberpunk', type: 'pollinations' }
 ]
+
+// Detailed translation dictionary for translating 500 generated models to Chinese dynamically
+const MODEL_TRANSLATIONS: Record<string, string> = {
+  // Categories
+  'Realistic': '写实/真实感',
+  'Anime': '二次元/动漫',
+  '3D / Game': '3D/游戏渲染',
+  'Sci-Fi': '科幻/赛博朋克',
+  'Fantasy': '奇幻/魔幻仙境',
+  'Artistic': '艺术创作/插画',
+  'Design': '设计/建筑空间',
+
+  // Types
+  'Checkpoint': '大模型 (Checkpoint)',
+  'LoRA': '微调模型 (LoRA)',
+  'Style': '风格化权重 (Style)',
+  'Textual Inversion': '嵌入式词嵌入 (Textual Inversion)',
+
+  // Tag translations
+  'photorealistic': '写实摄影',
+  'cinematic': '电影质感',
+  'portrait': '人像/肖像',
+  'nature': '大自然风光',
+  'illustration': '插画风',
+  'fantasy': '奇幻冒险',
+  'painting': '手绘油画',
+  'digital art': '数码艺术',
+  'anime': '动漫二次元',
+  '2d': '二维手绘',
+  'vibrant': '鲜艳色彩',
+  'character': '角色设计',
+  'high-res': '高清重绘',
+  'modern': '现代风格',
+  'cyberpunk': '赛博朋克',
+  'mecha': '机甲高达',
+  'neon': '霓虹灯光',
+  'robotics': '人工智能/机器人',
+  'realistic': '写实主义',
+  'skin texture': '真实皮肤纹理',
+  'studio lighting': '影棚打光',
+  'street': '街头摄影',
+  'scenery': '宏大风景',
+  'epic': '史诗巨作',
+  'outdoor': '户外阳光',
+  'semi-realistic': '半写实风',
+  'magic': '魔法粒子',
+  'creature': '奇异生物',
+  'mix': '融合配方',
+  'cute': 'Q版萌系',
+  'character design': '立绘设定',
+  'versatile': '万能百搭',
+  'detailed': '细节雕刻',
+  'artistic': '艺术大师',
+  'civitai': 'C站热门',
+  '3d render': '3D立体渲染',
+  'pixar': '皮克斯动画',
+  'disney': '迪士尼风格',
+  'chinese ink': '国风水墨',
+  'hanfu': '华美汉服',
+  'traditional': '传统东方',
+  'watercolor': '唯美水彩',
+  'architecture': '建筑制图',
+  'interior': '室内设计',
+  'minimalist': '极简主义',
+  'living room': '奢华客厅',
+  'pony': '小马扩散',
+  'expressive': '生动表情',
+  'poses': '丰富姿势',
+  'retro': '复古风情',
+  'synthwave': '电子合成波',
+  '80s': '八十年代',
+  'claymation': '粘土泥塑',
+  'stop motion': '定格动画',
+  'toy': '盲盒玩具',
+  'texture': '材质肌理',
+  'trending': '流行推荐',
+  'hq': '高精画质',
+  'latest': '最新发布',
+
+  // Common template fragments
+  'The industry-standard realistic checkpoint for cinematic lightning, detailed portraits, and stunning nature photography.':
+    '行业标准的写实微调大模型，专为电影级光影、精细人像肖像以及令人惊叹的自然风光摄影而设计。',
+  'Incredibly versatile checkpoint for digital painting, illustrations, fantasy concept art, and high-fidelity renders.':
+    '极度通用的多功能模型，完美支持数码绘画、精美插画、奇幻概念设计以及高保真渲染。',
+  'Premium quality anime and 2D character drawing model. Excels in colorful background details and beautiful dynamic lighting.':
+    '超高质量的二次元与2D动漫人物立绘模型。在艳丽的背景细节与华丽的动态光影上表现卓越。',
+  'High-resolution anime checkpoint trained on modern anime styles, supporting advanced tags and beautiful scenery.':
+    '专为现代动漫风格设计的高分辨率二次元大模型，支持高级标签描述，场景和背景绘制极其优美。',
+  'Outstanding cyberpunk, futuristic mecha, and high-tech robotic concept art generator with neon glows.':
+    '出色的赛博朋克风格模型，擅长绘制未来科技感的机甲、高科技机器人以及科幻霓虹氛围。',
+  'Superb realistic model for human skin texture, realistic clothes, studio lighting portraits, and street photography.':
+    '极具质感的写实大模型，专为呈现逼真的皮肤纹理、拟真衣物褶皱、影棚肖像和街头纪实摄影而优化。',
+  'Epic cinematic and outdoor scenery realism. Handles mountains, clouds, water reflections, and natural sunlight perfectly.':
+    '史诗级电影写实与户外风景大模型。对山脉、云朵、水面反光以及自然日光漫反射的掌控无懈可击。',
+  'A magical blend model that provides beautiful semi-realistic fantasy characters, dragons, castles, and enchanted forest scenery.':
+    '极富想象力的魔幻融合模型，擅长绘制精美的半写实奇幻人物、巨龙、城堡以及神秘的林间仙境。',
+  'The golden standard anime mix model. Beautiful soft colors, incredibly cute faces, and wonderful details for both female and male figures.':
+    '二次元融合大模型的黄金标准。色彩柔和唯美、人物五官精致可爱，完美兼顾男女角色的细节刻画。',
+  'Meticulously crafted model providing superb flexibility, allowing highly specific prompts to build detailed art.':
+    '精心雕琢的多功能艺术大模型，具有极高的提示词响应度，支持特定细致描述以构建出众的视觉杰作。',
+  'Generates lovable 3D cartoon styled model figurines, toy story aesthetics, and detailed Pixar character illustrations.':
+    '生成惹人喜爱的3D卡通公仔盲盒玩具、玩具总动员美学以及高细节的皮克斯动漫角色立绘。',
+  'Gorgeous classic Chinese ink painting, watercolor illustration, and traditional Hanfu character drawings.':
+    '华丽绝伦的经典国风水墨大模型，擅长水彩插画与高颜值的东方传统汉服人物绘制。',
+  'Professional architectural visualizer for modern living rooms, luxury hotels, lighting designs, and minimalistic layouts.':
+    '专业的室内设计与建筑可视化大模型，完美适配现代客厅、豪华酒店大堂、精细照明设计与极简空间布局。',
+  'Extremely popular and expressive model for cartoon figures, custom outfits, specific poses, and illustrations.':
+    '极受欢迎、极富表现力的动漫大模型，在处理特定姿势、定制服饰和个性化插画时表现极为优秀。',
+  'Adds rich retro synthwave grid lines, hot pink horizons, neon purples, and nostalgic 1980s graphics.':
+    '注入浓郁的复古电子合成波风格，包括炫目网格、粉色地平线、霓虹紫光与怀旧的1980年代视觉图腾。',
+  'Turns any prompt into a charming stop-motion claymation toy style, with finger-print clay textures and soft shading.':
+    '将任意描述一键转化为富有魅力的泥塑粘土定格动画玩具风，包含真实的指纹粘土肌理和温润细腻的投影。'
+};
+
+const translateToChinese = (text: string): string => {
+  if (!text) return text;
+
+  // Try direct match
+  if (MODEL_TRANSLATIONS[text]) {
+    return MODEL_TRANSLATIONS[text];
+  }
+
+  // Handle version headers or standard wrappers
+  // e.g. [Version V1.0] Updated model branch. Fine-tuned for better performance on Flux.1.
+  let translated = text;
+
+  // Replace version phrases
+  translated = translated.replace(/\[Version ([^\]]+)\] Updated model branch\./, '[版本 $1] 经过最新精调。');
+  translated = translated.replace(/Fine-tuned for better performance on ([^.]+)\./, '针对 $1 进行了画质与生成速度的深度优化。');
+
+  // Replace common fragments
+  Object.keys(MODEL_TRANSLATIONS).forEach(key => {
+    if (key.length > 10 && translated.includes(key)) {
+      translated = translated.replace(key, MODEL_TRANSLATIONS[key]);
+    }
+  });
+
+  return translated;
+};
 
 // Default preloaded prompts for the library
 const INITIAL_PROMPTS = [
@@ -318,24 +437,13 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1)
   const [savedModelIds, setSavedModelIds] = useState<string[]>([])
   const [selectedActiveModel, setSelectedActiveModel] = useState<AIModel | null>(null)
+  const [translatedModelIds, setTranslatedModelIds] = useState<string[]>([])
 
   // Prompt Library states
   const [promptLibrary, setPromptLibrary] = useState<any[]>(INITIAL_PROMPTS)
   const [newPromptName, setNewPromptName] = useState('')
   const [newPromptContent, setNewPromptContent] = useState('')
   const [newPromptCategory, setNewPromptCategory] = useState('General')
-
-  // LoRA Training Functional Area (Simulated)
-  const [loraName, setLoraName] = useState('whitefox-lora')
-  const [baseModel, setBaseModel] = useState('SDXL-1.0')
-  const [learningRate, setLearningRate] = useState(0.0001)
-  const [trainSteps, setTrainSteps] = useState(1000)
-  const [triggerWord, setTriggerWord] = useState('whitefox')
-  const [isTraining, setIsTraining] = useState(false)
-  const [trainingProgress, setTrainingProgress] = useState(0)
-  const [trainingLogs, setTrainingLogs] = useState<string[]>([])
-  const [trainingEpoch, setTrainingEpoch] = useState(0)
-  const [trainingLosses, setTrainingLosses] = useState<number[]>([])
 
   // Generation Outcome & History
   const [generatedImage, setGeneratedImage] = useState<string | null>(null)
@@ -583,7 +691,7 @@ export default function App() {
   }
 
   // AI Generation Core Function
-  const handleGenerateArt = async (overridePrompt?: string) => {
+  const handleGenerateArt = async (overridePrompt?: string, overrideModel?: AIModel | null) => {
     saveCredentials()
     setGenerating(true)
     setGenError(null)
@@ -599,6 +707,8 @@ export default function App() {
       w = parseInt(customWidth) || 512
       h = parseInt(customHeight) || 512
     }
+
+    const currentModel = overrideModel !== undefined ? overrideModel : selectedActiveModel
 
     const payload = {
       prompt: overridePrompt || prompt,
@@ -619,8 +729,9 @@ export default function App() {
       mj_url: mjUrl,
       mj_key: mjKey,
       // Pass selected model data to drive backends
-      activeModelName: selectedActiveModel ? selectedActiveModel.name : null,
-      activeModelType: selectedActiveModel ? selectedActiveModel.type : null
+      activeModelName: currentModel ? currentModel.name : null,
+      activeModelType: currentModel ? currentModel.type : null,
+      activeModelCategory: currentModel ? currentModel.category : null
     }
 
     try {
@@ -668,7 +779,7 @@ export default function App() {
   const handleModelApplyAndGenerate = async (model: AIModel) => {
     const updatedPrompt = applyModelToGenerator(model)
     window.scrollTo({ top: 120, behavior: 'smooth' })
-    await handleGenerateArt(updatedPrompt)
+    await handleGenerateArt(updatedPrompt, model)
   }
 
   // Spell Casting function (施法功能)
@@ -707,45 +818,6 @@ export default function App() {
     }
   }
 
-  // Simulated LoRA Model training function
-  const handleStartSimulatedTraining = () => {
-    if (isTraining) return
-    setIsTraining(true)
-    setTrainingProgress(0)
-    setTrainingEpoch(0)
-    setTrainingLogs([`[Training Setup] Base Model: ${baseModel}, Learning Rate: ${learningRate}, Steps: ${trainSteps}`])
-    setTrainingLosses([])
-
-    const totalSteps = 200
-    let stepCount = 0
-
-    const interval = setInterval(() => {
-      stepCount += 10
-      const progress = Math.min((stepCount / totalSteps) * 100, 100)
-      const currentEpoch = Math.floor(stepCount / 20)
-
-      // Calculate dynamic simulated Loss values decreasing gracefully
-      const baseLoss = Math.exp(-stepCount / 80) * 1.8 + Math.random() * 0.15
-      const cleanLoss = parseFloat(baseLoss.toFixed(4))
-
-      setTrainingProgress(progress)
-      setTrainingEpoch(currentEpoch)
-      setTrainingLosses(prev => [...prev, cleanLoss])
-
-      const newLog = `[Step ${stepCount}/${trainSteps}] Epoch ${currentEpoch} - Loss: ${cleanLoss} - LearningRate: ${learningRate}`
-      setTrainingLogs(prev => [...prev, newLog])
-
-      if (stepCount >= totalSteps) {
-        clearInterval(interval)
-        setIsTraining(false)
-        setTrainingLogs(prev => [
-          ...prev,
-          `[Training Complete] LoRA weights successfully trained and saved as '${loraName}.safetensors'!`,
-          `[Success] Trigger word "${triggerWord}" is now fully compiled and ready to use in prompts.`
-        ])
-      }
-    }, 400)
-  }
 
   // Model Hub filtering logic: 500 items, pagination with exactly 20 items per view.
   const filteredModels = ALL_MODELS.filter((model) => {
@@ -1522,21 +1594,37 @@ export default function App() {
               </div>
             </div>
 
-            {/* Models rendering (Exactly 20 visible items with Schematic thumbnails) */}
+            {/* Models rendering (Exactly 20 visible items with real generated preview images) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
               {currentVisibleModels.map((model) => {
                 const isSaved = savedModelIds.includes(model.id);
                 const isActive = selectedActiveModel?.id === model.id;
+                const isTranslated = translatedModelIds.includes(model.id);
+
+                // Toggle translation for this model card
+                const toggleTranslate = () => {
+                  if (isTranslated) {
+                    setTranslatedModelIds(prev => prev.filter(id => id !== model.id));
+                  } else {
+                    setTranslatedModelIds(prev => [...prev, model.id]);
+                  }
+                };
+
+                const categoryLabel = isTranslated ? translateToChinese(model.category) : model.category;
+                const typeLabel = isTranslated ? translateToChinese(model.type) : model.type;
+                const displayDescription = isTranslated ? translateToChinese(model.description) : model.description;
 
                 return (
                   <div
                     key={model.id}
                     className={`bg-slate-950 border p-3 rounded-xl flex gap-3 transition-all ${isActive ? 'border-emerald-500/50 shadow-md shadow-emerald-900/10' : 'border-slate-850 hover:border-slate-700'}`}
                   >
-                    {/* Schematic inline SVG thumbnail / diagram - saves bandwidth */}
-                    <div
-                      className="w-12 h-12 rounded-lg overflow-hidden border border-slate-800 shrink-0 self-start"
-                      dangerouslySetInnerHTML={{ __html: model.thumbnailSvg }}
+                    {/* Model sample generation preview thumbnail image */}
+                    <img
+                      src={model.thumbnailUrl}
+                      alt={model.name}
+                      className="w-14 h-14 rounded-lg object-cover border border-slate-800 shrink-0 self-start"
+                      loading="lazy"
                     />
 
                     <div className="flex-1 flex flex-col justify-between">
@@ -1544,6 +1632,13 @@ export default function App() {
                         <div className="flex justify-between items-start gap-1 mb-1">
                           <span className="text-[11px] font-bold text-slate-100 truncate max-w-[120px]">{model.name}</span>
                           <div className="flex gap-1 shrink-0">
+                            {/* Translation Trigger Button */}
+                            <button
+                              onClick={toggleTranslate}
+                              className={`text-[9px] px-1.5 py-0.5 rounded transition font-semibold border ${isTranslated ? 'bg-rose-500/10 border-rose-500/30 text-rose-450' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'}`}
+                            >
+                              {isTranslated ? t.translatedLabel : t.oneClickTranslate}
+                            </button>
                             <button
                               onClick={() => toggleSaveModel(model.id)}
                               className={`p-1 rounded hover:bg-slate-900 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
@@ -1554,11 +1649,12 @@ export default function App() {
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-1.5">
-                          <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{model.type}</span>
+                          <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{typeLabel}</span>
                           <span className="text-[8px] bg-slate-900 text-sky-400 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{model.baseModel}</span>
+                          <span className="text-[8px] bg-slate-900 text-emerald-450 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{categoryLabel}</span>
                         </div>
 
-                        <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{model.description}</p>
+                        <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{displayDescription}</p>
                       </div>
 
                       <div className="flex flex-col gap-2 border-t border-slate-850/40 pt-2 mt-auto">
@@ -1686,135 +1782,6 @@ export default function App() {
 
           </div>
 
-          {/* Simulated LoRA Training Functional Area */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <h3 className="text-sm font-bold flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Cpu className="w-4 h-4 text-sky-400" />
-              {t.trainingArea}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {/* Form parameters */}
-              <div className="space-y-3">
-
-                {/* Upload dataset zip */}
-                <div>
-                  <label className="block text-[10px] text-slate-450 uppercase mb-1 font-bold">{t.datasetUpload}</label>
-                  <div className="border border-dashed border-slate-800 bg-slate-950 p-3 rounded-lg text-center cursor-pointer hover:border-slate-600 transition">
-                    <input type="file" multiple accept="image/*,.zip" className="hidden" id="lora-dataset-files" />
-                    <label htmlFor="lora-dataset-files" className="cursor-pointer block">
-                      <Upload className="w-5 h-5 mx-auto text-slate-400 mb-1" />
-                      <span className="text-[10px] text-slate-400 block">Click to select ZIP dataset</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[9px] text-slate-500">{t.loraName}</label>
-                    <input
-                      type="text"
-                      value={loraName}
-                      onChange={(e) => setLoraName(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-slate-500">{t.triggerWord}</label>
-                    <input
-                      type="text"
-                      value={triggerWord}
-                      onChange={(e) => setTriggerWord(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1.5">
-                  <div>
-                    <label className="block text-[9px] text-slate-500">BaseModel</label>
-                    <select
-                      value={baseModel}
-                      onChange={(e) => setBaseModel(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1 text-[9px]"
-                    >
-                      <option value="SDXL-1.0">SDXL 1.0</option>
-                      <option value="SD-1.5">SD 1.5</option>
-                      <option value="Flux">Flux.1</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-slate-500">LR</label>
-                    <input
-                      type="number"
-                      step={0.0001}
-                      value={learningRate}
-                      onChange={(e) => setLearningRate(Number(e.target.value))}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1 text-[9px] text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] text-slate-500">Steps</label>
-                    <input
-                      type="number"
-                      value={trainSteps}
-                      onChange={(e) => setTrainSteps(Number(e.target.value))}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-1 text-[9px] text-center"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleStartSimulatedTraining}
-                  disabled={isTraining}
-                  className="w-full bg-sky-600 hover:bg-sky-700 disabled:bg-sky-900/30 text-white font-bold py-2 rounded-lg text-xs transition"
-                >
-                  {isTraining ? 'Training Underway...' : t.startTraining}
-                </button>
-
-              </div>
-
-              {/* Dynamic logs & Loss screen */}
-              <div className="bg-slate-950 rounded-xl p-3 border border-slate-850 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-center text-[10px] text-slate-500 border-b border-slate-850 pb-1.5 mb-2 font-bold uppercase tracking-wider">
-                    <span>{t.trainingLogs}</span>
-                    <span>{t.epoch}: {trainingEpoch}</span>
-                  </div>
-
-                  {/* Log Viewport */}
-                  <div className="bg-black/40 border border-slate-900 rounded-lg p-2 h-28 overflow-y-auto text-[9px] font-mono text-emerald-450 space-y-1">
-                    {trainingLogs.map((log, index) => (
-                      <div key={index} className="leading-relaxed">{log}</div>
-                    ))}
-                    {isTraining && <div className="text-white animate-pulse">▋ System training...</div>}
-                  </div>
-                </div>
-
-                {/* Progress & Loss simulation bar */}
-                <div className="mt-3 space-y-2">
-                  <div className="flex justify-between text-[10px] text-slate-450">
-                    <span>{t.trainingProgress}</span>
-                    <span className="font-bold text-white">{Math.round(trainingProgress)}%</span>
-                  </div>
-                  <div className="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div className="bg-sky-500 h-full transition-all duration-300" style={{ width: `${trainingProgress}%` }} />
-                  </div>
-                  {trainingLosses.length > 0 && (
-                    <div className="flex justify-between text-[9px] text-slate-500">
-                      <span>{t.trainingLoss}</span>
-                      <span className="text-red-400 font-bold">{trainingLosses[trainingLosses.length - 1]}</span>
-                    </div>
-                  )}
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
 
           {/* History records */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">

@@ -108,7 +108,8 @@ app.post('/api/generate', async (c) => {
       mj_key = '',
       // Chosen custom model parameters
       activeModelName = null,
-      activeModelType = null
+      activeModelType = null,
+      activeModelCategory = null
     } = body
 
     if (!prompt) {
@@ -268,18 +269,23 @@ app.post('/api/generate', async (c) => {
     // We dynamically map the API models based on the applied model category!
     let targetApiId = selectedApiId
 
-    if (activeModelName) {
-      const lowerName = activeModelName.toLowerCase()
-      // If anime related model, dynamically route to pollination-anime model
-      if (lowerName.includes('anime') || lowerName.includes('counterfeit') || lowerName.includes('meina')) {
-        targetApiId = 'pollinations-anime'
-      } else if (lowerName.includes('3d') || lowerName.includes('pixar') || lowerName.includes('clay')) {
-        targetApiId = 'pollinations-3d'
-      } else if (lowerName.includes('cyber') || lowerName.includes('cyberpunk') || lowerName.includes('synthwave') || lowerName.includes('ghost')) {
-        targetApiId = 'pollinations-niche'
-      } else if (lowerName.includes('juggernaut') || lowerName.includes('epic') || lowerName.includes('realistic')) {
-        targetApiId = 'pollinations-flux'
-      }
+    // Support routing search-enabled or selected models dynamically using both names and categories!
+    const effectiveCategory = activeModelCategory || (activeModelName ? (
+      activeModelName.toLowerCase().includes('anime') || activeModelName.toLowerCase().includes('counterfeit') || activeModelName.toLowerCase().includes('meina') ? 'Anime' :
+      activeModelName.toLowerCase().includes('3d') || activeModelName.toLowerCase().includes('pixar') || activeModelName.toLowerCase().includes('clay') ? '3D / Game' :
+      activeModelName.toLowerCase().includes('cyber') || activeModelName.toLowerCase().includes('cyberpunk') || activeModelName.toLowerCase().includes('synthwave') || activeModelName.toLowerCase().includes('ghost') ? 'Sci-Fi' : 'Realistic'
+    ) : null)
+
+    if (effectiveCategory === 'Anime') {
+      targetApiId = 'pollinations-anime'
+    } else if (effectiveCategory === '3D / Game') {
+      targetApiId = 'pollinations-3d'
+    } else if (effectiveCategory === 'Sci-Fi') {
+      targetApiId = 'pollinations-niche'
+    } else if (effectiveCategory === 'Realistic') {
+      targetApiId = 'pollinations-flux'
+    } else if (effectiveCategory === 'Fantasy') {
+      targetApiId = 'pollinations-flux'
     }
 
     const selectedApi = FREE_APIS.find(a => a.id === targetApiId) || FREE_APIS[0]
