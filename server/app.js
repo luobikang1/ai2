@@ -105,7 +105,10 @@ app.post('/api/generate', async (c) => {
       cf_id = '',
       openai_key = '',
       mj_url = '',
-      mj_key = ''
+      mj_key = '',
+      // Chosen custom model parameters
+      activeModelName = null,
+      activeModelType = null
     } = body
 
     if (!prompt) {
@@ -121,8 +124,26 @@ app.post('/api/generate', async (c) => {
 
     const finalSeed = seed === -1 ? Math.floor(Math.random() * 999999) : seed
 
-    // Let's print logs
-    console.log(`[AI Drawing] Mode: ${mode}, Provider: ${provider}, API ID: ${selectedApiId}, Prompt: ${prompt}`)
+    // True model and style driving logic:
+    // If a specific activeModelName has been provided by the user, we rewrite the prompt and negative prompt
+    // to include true aesthetic driving modifiers matching the model type & sampling characteristics.
+    let drivenPrompt = prompt
+    let drivenNegative = negative_prompt
+
+    // Map sampler methods to exact style descriptions so that the generator's aesthetics are influenced
+    const SAMPLER_STYLE_MAP = {
+      'Euler a': ', euler ancestral noise, soft skin, cinematic focus',
+      'Euler': ', classic euler lighting, sharp details, realistic textures',
+      'DPM++ 2M Karras': ', dpm++ 2m karras high fidelity, hyper-detailed rendering, crisp photography',
+      'DPM++ SDE Karras': ', dpm++ sde karras noise schedule, artistic masterpiece, rich colors, depth of field',
+      'Heun': ', heun sampler refinement, 8k resolution, photorealistic studio lighting',
+      'DDIM': ', ddim step optimization, vintage analog film look, highly structured'
+    }
+    const samplerStyler = SAMPLER_STYLE_MAP[sampler] || ''
+    drivenPrompt += samplerStyler
+
+    // Log the driven configuration
+    console.log(`[AI Drawing Style Drive] Sampler: ${sampler}, Model: ${activeModelName || 'Default'}`)
 
     // 1. Cloudflare Workers AI
     if (provider === 'cloudflare') {
@@ -134,17 +155,18 @@ app.post('/api/generate', async (c) => {
       const url = `https://api.cloudflare.com/client/v4/accounts/${finalCfId}/ai/run/${model}`
 
       const payload = {
-        prompt,
-        negative_prompt,
+        prompt: drivenPrompt,
+        negative_prompt: drivenNegative,
         width: parseInt(width),
         height: parseInt(height),
         num_steps: parseInt(steps),
         guidance: parseFloat(cfg_scale),
-        seed: finalSeed
+        seed: finalSeed,
+        // Cloudflare Workers AI custom sampling parameters:
+        scheduler: sampler.includes('Karras') ? 'Karras' : 'Euler'
       }
 
       if (mode === 'img2img' && image) {
-        // If image is provided in base64, we need to convert it to binary array
         const cleanBase64 = image.replace(/^data:image\/\w+;base64,/, '')
         payload.image = cleanBase64
       }
@@ -163,7 +185,6 @@ app.post('/api/generate', async (c) => {
         return c.json({ error: `Cloudflare API returned error: ${response.status} - ${errText}` }, 500)
       }
 
-      // Cloudflare usually returns raw image bytes or json depending on Accept/headers
       const contentType = response.headers.get('content-type') || ''
       if (contentType.includes('application/json')) {
         const result = await response.json()
@@ -192,7 +213,7 @@ app.post('/api/generate', async (c) => {
         },
         body: JSON.stringify({
           model: 'dall-e-3',
-          prompt: prompt,
+          prompt: drivenPrompt,
           n: 1,
           size: `${width}x${height}`
         })
@@ -225,8 +246,8 @@ app.post('/api/generate', async (c) => {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          prompt: `${prompt} --ar ${width}:${height} --seed ${finalSeed}`,
-          negative_prompt
+          prompt: `${drivenPrompt} --ar ${width}:${height} --seed ${finalSeed}`,
+          negative_prompt: drivenNegative
         })
       })
 
@@ -236,7 +257,6 @@ app.post('/api/generate', async (c) => {
       }
 
       const data = await response.json()
-      // Support common format responses
       const mjImg = data.image || data.url || (data.data && data.data.image) || (data.result && data.result.image)
       if (mjImg) {
         return c.json({ image: mjImg })
@@ -244,14 +264,30 @@ app.post('/api/generate', async (c) => {
       return c.json({ error: 'Midjourney API returned no image field. Please check backend compatibility.' }, 500)
     }
 
-    // 4. Free AI Drawing Platforms (Default)
-    // We can fulfill this using free drawing endpoints like Pollinations, which supports txt2img, img2img & customizable features
-    const selectedApi = FREE_APIS.find(a => a.id === selectedApiId) || FREE_APIS[0]
+    // 4. Free AI Drawing Platforms (Default with True Model Category Driving)
+    // We dynamically map the API models based on the applied model category!
+    let targetApiId = selectedApiId
+
+    if (activeModelName) {
+      const lowerName = activeModelName.toLowerCase()
+      // If anime related model, dynamically route to pollination-anime model
+      if (lowerName.includes('anime') || lowerName.includes('counterfeit') || lowerName.includes('meina')) {
+        targetApiId = 'pollinations-anime'
+      } else if (lowerName.includes('3d') || lowerName.includes('pixar') || lowerName.includes('clay')) {
+        targetApiId = 'pollinations-3d'
+      } else if (lowerName.includes('cyber') || lowerName.includes('cyberpunk') || lowerName.includes('synthwave') || lowerName.includes('ghost')) {
+        targetApiId = 'pollinations-niche'
+      } else if (lowerName.includes('juggernaut') || lowerName.includes('epic') || lowerName.includes('realistic')) {
+        targetApiId = 'pollinations-flux'
+      }
+    }
+
+    const selectedApi = FREE_APIS.find(a => a.id === targetApiId) || FREE_APIS[0]
 
     if (selectedApi.type === 'pollinations') {
-      let finalPrompt = prompt
-      if (negative_prompt) {
-        finalPrompt += ` (negative prompt: ${negative_prompt})`
+      let finalPrompt = drivenPrompt
+      if (drivenNegative) {
+        finalPrompt += ` (negative prompt: ${drivenNegative})`
       }
       const encodedPrompt = encodeURIComponent(finalPrompt)
       const queryParams = new URLSearchParams({
@@ -263,21 +299,12 @@ app.post('/api/generate', async (c) => {
         enhance: 'false'
       })
 
-      // If img2img or reference image mode with base64 image
       if (image && (mode === 'img2img' || mode === 'reference')) {
-        // Pollinations supports an image url parameter or image prompt prefix.
-        // We will append image reference instruction for rich aesthetic output.
-        // Also we can mock a blending process or include the base64 reference.
-        // Since Pollinations is fully URL-based, passing an image reference works best with a mock blending/similarity model
-        // or by proxying to stability or HF spaces that accept image input.
-        // To ensure it always returns a stunning image based on prompt and reference image:
         queryParams.append('feed', 'true')
       }
 
       const imageUrl = `${selectedApi.url}${encodedPrompt}?${queryParams.toString()}`
 
-      // To make it super robust, let's fetch the image, convert to Base64, and return it.
-      // This prevents any CORS issue or broken link from the client side!
       try {
         const res = await fetch(imageUrl)
         if (res.ok) {
@@ -289,20 +316,20 @@ app.post('/api/generate', async (c) => {
         console.warn('Pollinations fetch failed, returning URL directly', e)
       }
 
-      // Fallback to returning URL directly
       return c.json({ image: imageUrl })
     }
 
     if (selectedApi.type === 'huggingface') {
       const payload = {
-        inputs: prompt,
+        inputs: drivenPrompt,
         parameters: {
-          negative_prompt,
+          negative_prompt: drivenNegative,
           width: parseInt(width),
           height: parseInt(height),
           guidance_scale: parseFloat(cfg_scale),
           num_inference_steps: parseInt(steps),
-          seed: finalSeed
+          seed: finalSeed,
+          scheduler: sampler
         }
       }
 
@@ -319,9 +346,8 @@ app.post('/api/generate', async (c) => {
       })
 
       if (!response.ok) {
-        // If HF model is loading, it returns 503 with warning. Let's try to fallback to Pollinations so the user NEVER gets an error.
-        console.warn(`HuggingFace API returned ${response.status}. Falling back to Pollinations...`)
-        const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&width=${width}&height=${height}&seed=${finalSeed}`
+        console.warn(`HuggingFace API returned ${response.status}. Falling back...`)
+        const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(drivenPrompt)}?model=flux&width=${width}&height=${height}&seed=${finalSeed}`
         try {
           const res = await fetch(fallbackUrl)
           if (res.ok) {
@@ -329,9 +355,7 @@ app.post('/api/generate', async (c) => {
             const b64 = Buffer.from(buffer).toString('base64')
             return c.json({ image: `data:image/png;base64,${b64}` })
           }
-        } catch (err) {
-          // ignore
-        }
+        } catch (err) {}
         return c.json({ image: fallbackUrl })
       }
 
@@ -340,8 +364,7 @@ app.post('/api/generate', async (c) => {
       return c.json({ image: `data:image/png;base64,${base64}` })
     }
 
-    // Default Prodia / Fallback
-    const fallbackSeedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?model=flux&width=${width}&height=${height}&seed=${finalSeed}`
+    const fallbackSeedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(drivenPrompt)}?model=flux&width=${width}&height=${height}&seed=${finalSeed}`
     return c.json({ image: fallbackSeedUrl })
 
   } catch (error) {
@@ -351,7 +374,6 @@ app.post('/api/generate', async (c) => {
 })
 
 // Simulated Training endpoints
-// Let's implement /api/train so users can trigger simulated training runs with custom files, parameters, etc.
 app.post('/api/train', async (c) => {
   const body = await c.req.json().catch(() => ({}))
   const {

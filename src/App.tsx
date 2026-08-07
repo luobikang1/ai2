@@ -28,7 +28,8 @@ import {
   BookOpen,
   Eye,
   Heart,
-  Zap
+  Zap,
+  Flame
 } from 'lucide-react'
 import { ALL_MODELS, AIModel } from './modelsData'
 
@@ -106,7 +107,7 @@ const translations = {
 
     // Model Hub Translation Addition
     modelHubTitle: '互联网模型探索中心',
-    modelHubSub: '已自动检索保存 500 条高质量模型，当前可视 20 条，支持精准搜索与保存。',
+    modelHubSub: '已自动检索保存 500 条高质量模型，内置超轻量示意缩略图，不耗费额外流量。支持精准搜索与保存。',
     searchPlaceholder: '输入关键词搜索500条大模型...',
     modelType: '模型类型',
     baseModelLabel: '底模',
@@ -117,7 +118,13 @@ const translations = {
     savedModelsEmpty: '您还没有收藏任何模型，在下方列表中点击心形图标收藏吧！',
     prevPage: '上一页',
     nextPage: '下一页',
-    pageIndicator: '第 {current} / {total} 页'
+    pageIndicator: '第 {current} / {total} 页',
+
+    // Spell Selector
+    spellTitle: '高级咒语魔法施法器 (Spellbook Selector)',
+    spellSub: '点击以下各系法术，一键为积极提示词「注入」对应的唯美画风和采样增强咒语！',
+    castingActive: '正在释放魔法「{spell}」...',
+    spellCastBtn: '吟唱施法'
   },
   en: {
     title: 'White Fox AI II - Intelligent Painting Panel',
@@ -191,7 +198,7 @@ const translations = {
 
     // Model Hub Translation Addition
     modelHubTitle: 'Internet Model Hub',
-    modelHubSub: '500 models pre-saved. Showing 20 active options. Fully searchable & saveable.',
+    modelHubSub: '500 models pre-saved. Lightweight inline schematics embedded. Fully searchable & saveable.',
     searchPlaceholder: 'Search 500 AI checkpoints/LoRAs...',
     modelType: 'Type',
     baseModelLabel: 'Base',
@@ -202,9 +209,43 @@ const translations = {
     savedModelsEmpty: 'No bookmarked models yet. Click the heart icon below to save your favorites!',
     prevPage: 'Prev',
     nextPage: 'Next',
-    pageIndicator: 'Page {current} of {total}'
+    pageIndicator: 'Page {current} of {total}',
+
+    // Spell Selector
+    spellTitle: 'Spellbook Magic Styler',
+    spellSub: 'Cast ancient aesthetic spells to automatically inject high-fidelity modifiers and sampling scheduler tags into your prompts.',
+    castingActive: 'Casting magical spell 「{spell}」...',
+    spellCastBtn: 'Cast Spell'
   }
 }
+
+// Spells configuration (咒语魔法施法列表)
+const MAGICAL_SPELLS = [
+  {
+    id: 'light-spell',
+    name: '🌟 唯美光影 (Ethereal Light)',
+    modifiers: ', volumetric godrays, warm sunset flare, glittering dust particles, hyper-realistic ambient occlusion, dramatic backlighting',
+    class: 'border-amber-500/40 text-amber-450 hover:bg-amber-950/20'
+  },
+  {
+    id: 'ink-spell',
+    name: '🎨 大师手笔 (Masterpiece Ink)',
+    modifiers: ', digital canvas painting, fine ink washes, masterpiece texture, gorgeous composition, highly stylized oil strokes',
+    class: 'border-indigo-500/40 text-indigo-400 hover:bg-indigo-950/20'
+  },
+  {
+    id: 'scifi-spell',
+    name: '⚡ 数码科幻 (Sci-Fi Cyber)',
+    modifiers: ', cyberpunk tech circuits, neon glow lines, ultra-modern holographic HUD overlay, mechanical cyber design, high tech details',
+    class: 'border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/20'
+  },
+  {
+    id: 'fantasy-spell',
+    name: '🍄 奇幻仙境 (Fantasy Realm)',
+    modifiers: ', dreamy enchanted flora, magical floating sparkles, fantasy scenery concept art, surreal landscape, photorealistic unreal engine 5 rendering',
+    class: 'border-purple-500/40 text-purple-400 hover:bg-purple-950/20'
+  }
+]
 
 // 10 Preset Drawing public APIs
 const PRESET_APIS_INFO = [
@@ -253,6 +294,9 @@ export default function App() {
   const [seed, setSeed] = useState(-1)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [refImage, setRefImage] = useState<string | null>(null)
+
+  // Spell Cast state
+  const [castingSpellName, setCastingSpellName] = useState<string | null>(null)
 
   // API Providers & Credentials
   const [provider, setProvider] = useState<'free' | 'cloudflare' | 'openai' | 'midjourney'>('free')
@@ -574,7 +618,7 @@ export default function App() {
       openai_key: openaiKey,
       mj_url: mjUrl,
       mj_key: mjKey,
-      // Pass selected model data
+      // Pass selected model data to drive backends
       activeModelName: selectedActiveModel ? selectedActiveModel.name : null,
       activeModelType: selectedActiveModel ? selectedActiveModel.type : null
     }
@@ -622,12 +666,28 @@ export default function App() {
 
   // Quick 1-click model application + generate trigger
   const handleModelApplyAndGenerate = async (model: AIModel) => {
-    // 1. Set states and return updated prompt string instantly
     const updatedPrompt = applyModelToGenerator(model)
-    // 2. Scroll smooth to viewport
     window.scrollTo({ top: 120, behavior: 'smooth' })
-    // 3. Trigger immediate generation passing the direct prompt
     await handleGenerateArt(updatedPrompt)
+  }
+
+  // Spell Casting function (施法功能)
+  const castSpell = (spell: typeof MAGICAL_SPELLS[0]) => {
+    setCastingSpellName(spell.name)
+
+    // Add particle/modifiers dynamically into the prompt
+    let nextPrompt = prompt
+    if (!prompt.includes(spell.modifiers)) {
+      nextPrompt = prompt + spell.modifiers
+      setPrompt(nextPrompt)
+    }
+
+    // Auto enhance steps for fine-grained results
+    setSteps(Math.min(steps + 5, 45))
+
+    setTimeout(() => {
+      setCastingSpellName(null)
+    }, 1500)
   }
 
   // Delete History item
@@ -851,6 +911,16 @@ export default function App() {
         </div>
       </header>
 
+      {/* Magic Spell Casting Popup Bar */}
+      {castingSpellName && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border border-white/20 animate-bounce">
+          <Flame className="w-5 h-5 text-white animate-pulse" />
+          <span className="text-white text-xs font-bold tracking-wide">
+            {t.castingActive.replace('{spell}', castingSpellName)}
+          </span>
+        </div>
+      )}
+
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
@@ -983,6 +1053,31 @@ export default function App() {
               </div>
             )}
 
+          </div>
+
+          {/* Spell Selector Section (提示词魔法施法器) */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+            <h3 className="text-sm font-bold flex items-center gap-2 text-purple-400 border-b border-slate-800 pb-2">
+              <Flame className="w-4 h-4" />
+              {t.spellTitle}
+            </h3>
+            <p className="text-[10px] text-slate-400 leading-relaxed">{t.spellSub}</p>
+
+            <div className="grid grid-cols-2 gap-2">
+              {MAGICAL_SPELLS.map((spell) => (
+                <button
+                  key={spell.id}
+                  onClick={() => castSpell(spell)}
+                  className={`p-2.5 border rounded-xl text-left text-xs transition duration-200 flex flex-col justify-between h-20 ${spell.class}`}
+                >
+                  <span className="font-bold block truncate">{spell.name.split(' ')[1]}</span>
+                  <span className="text-[9px] text-slate-500 line-clamp-1 italic">{spell.modifiers.substring(2)}</span>
+                  <span className="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-right mt-1 font-bold tracking-wider hover:bg-white/10 uppercase block w-max self-end">
+                    {t.spellCastBtn}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Model & Platform API Configuration */}
@@ -1427,7 +1522,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Models rendering (Exactly 20 visible items) */}
+            {/* Models rendering (Exactly 20 visible items with Schematic thumbnails) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
               {currentVisibleModels.map((model) => {
                 const isSaved = savedModelIds.includes(model.id);
@@ -1436,47 +1531,54 @@ export default function App() {
                 return (
                   <div
                     key={model.id}
-                    className={`bg-slate-950 border p-3 rounded-xl flex flex-col justify-between transition-all ${isActive ? 'border-emerald-500/50 shadow-md shadow-emerald-900/10' : 'border-slate-850 hover:border-slate-700'}`}
+                    className={`bg-slate-950 border p-3 rounded-xl flex gap-3 transition-all ${isActive ? 'border-emerald-500/50 shadow-md shadow-emerald-900/10' : 'border-slate-850 hover:border-slate-700'}`}
                   >
-                    <div>
-                      <div className="flex justify-between items-start gap-1 mb-1">
-                        <span className="text-[11px] font-bold text-slate-100 truncate max-w-[140px]">{model.name}</span>
-                        <div className="flex gap-1 shrink-0">
+                    {/* Schematic inline SVG thumbnail / diagram - saves bandwidth */}
+                    <div
+                      className="w-12 h-12 rounded-lg overflow-hidden border border-slate-800 shrink-0 self-start"
+                      dangerouslySetInnerHTML={{ __html: model.thumbnailSvg }}
+                    />
+
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start gap-1 mb-1">
+                          <span className="text-[11px] font-bold text-slate-100 truncate max-w-[120px]">{model.name}</span>
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={() => toggleSaveModel(model.id)}
+                              className={`p-1 rounded hover:bg-slate-900 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
+                            >
+                              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500' : ''}`} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 mb-1.5">
+                          <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{model.type}</span>
+                          <span className="text-[8px] bg-slate-900 text-sky-400 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{model.baseModel}</span>
+                        </div>
+
+                        <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{model.description}</p>
+                      </div>
+
+                      <div className="flex flex-col gap-2 border-t border-slate-850/40 pt-2 mt-auto">
+                        <span className="text-[9px] text-slate-500 truncate">{t.author}: {model.creator}</span>
+                        <div className="flex gap-1.5">
                           <button
-                            onClick={() => toggleSaveModel(model.id)}
-                            className={`p-1 rounded hover:bg-slate-900 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
+                            onClick={() => applyModelToGenerator(model)}
+                            className="flex-1 text-[9px] bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1 rounded transition font-medium"
                           >
-                            <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500' : ''}`} />
+                            {t.applyModel}
+                          </button>
+
+                          <button
+                            onClick={() => handleModelApplyAndGenerate(model)}
+                            className="flex-1 text-[9px] bg-gradient-to-r from-rose-500 to-amber-550 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-1 rounded flex items-center justify-center gap-0.5 transition"
+                          >
+                            <Zap className="w-2.5 h-2.5 fill-white" />
+                            <span>{t.applyAndGenerate}</span>
                           </button>
                         </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1.5 py-0.2 rounded-md font-bold">{model.type}</span>
-                        <span className="text-[8px] bg-slate-900 text-sky-400 border border-slate-800 px-1.5 py-0.2 rounded-md font-bold">{model.baseModel}</span>
-                      </div>
-
-                      <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{model.description}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-2 border-t border-slate-850/40 pt-2.5 mt-auto">
-                      <span className="text-[9px] text-slate-500 truncate">{t.author}: {model.creator}</span>
-                      <div className="flex gap-1.5">
-                        <button
-                          onClick={() => applyModelToGenerator(model)}
-                          className="flex-1 text-[9px] bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1 rounded transition font-medium"
-                        >
-                          {t.applyModel}
-                        </button>
-
-                        {/* New Internet Model quick generating trigger button */}
-                        <button
-                          onClick={() => handleModelApplyAndGenerate(model)}
-                          className="flex-1 text-[9px] bg-gradient-to-r from-rose-500 to-amber-550 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-1 rounded flex items-center justify-center gap-0.5 transition"
-                        >
-                          <Zap className="w-2.5 h-2.5 fill-white" />
-                          <span>{t.applyAndGenerate}</span>
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -1764,7 +1866,7 @@ export default function App() {
                         className="bg-slate-900 hover:bg-slate-850 text-red-450 p-1 rounded hover:text-red-500"
                         title={t.delete}
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
 

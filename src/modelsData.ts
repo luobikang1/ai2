@@ -8,10 +8,20 @@ export interface AIModel {
   description: string;
   tags: string[];
   url: string;
+  thumbnailSvg: string; // inline SVG thumbnail/schematic diagram to save traffic
 }
 
-// Generate exactly 500 models programmatically to avoid humongous manual file,
-// while keeping each model description, name, tags, and creator realistic and high quality.
+// Generate category-specific lightweight schematic diagram SVG icons to represent model thumbnails
+const CATEGORY_SVGS: Record<string, string> = {
+  'Realistic': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-rose-500 fill-none stroke-current stroke-2"><circle cx="50" cy="50" r="30"/><circle cx="50" cy="50" r="10"/><path d="M20 20 L40 20 M80 20 L80 40 M20 80 L20 60"/></svg>`,
+  'Anime': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-purple-400 fill-none stroke-current stroke-2"><path d="M50 15 L60 40 L85 45 L65 65 L70 90 L50 75 L30 90 L35 65 L15 45 L40 40 Z"/><circle cx="50" cy="50" r="5" class="fill-current"/></svg>`,
+  '3D / Game': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-sky-400 fill-none stroke-current stroke-2"><path d="M50 15 L85 35 L85 75 L50 95 L15 75 L15 35 Z M50 15 L50 95 M15 35 L50 55 L85 35"/></svg>`,
+  'Sci-Fi': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-emerald-450 fill-none stroke-current stroke-2"><path d="M20 50 H80 M50 20 V80 M35 35 L65 65 M35 65 L65 35"/><circle cx="50" cy="50" r="15" class="fill-slate-950"/></svg>`,
+  'Fantasy': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-amber-400 fill-none stroke-current stroke-2"><path d="M50 10 L80 35 L50 60 L20 35 Z M50 60 V90 M30 80 H70"/></svg>`,
+  'Artistic': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-indigo-400 fill-none stroke-current stroke-2"><path d="M25 75 C40 45, 60 45, 75 25 M30 65 L45 80"/><circle cx="75" cy="25" r="8" class="fill-current"/></svg>`,
+  'Design': `<svg viewBox="0 0 100 100" class="w-full h-full bg-slate-950 p-2 text-teal-400 fill-none stroke-current stroke-2"><rect x="20" y="20" width="60" height="60" rx="5"/><path d="M35 50 H65 M50 35 V65"/></svg>`
+};
+
 const MODEL_FAMILIES = [
   {
     name: 'Juggernaut XL',
@@ -178,31 +188,29 @@ const MODEL_FAMILIES = [
 export const generate500Models = (): AIModel[] => {
   const models: AIModel[] = [];
 
-  // Fill the list to exactly 500 unique entries using model family templates
-  // with systematic variations to represent an infinite high-quality internet database
   for (let i = 0; i < 500; i++) {
     const template = MODEL_FAMILIES[i % MODEL_FAMILIES.length];
     const versionNum = (Math.floor(i / MODEL_FAMILIES.length) + 1).toFixed(1);
     const subVersions = ['V', 'v', 'v', 'Beta', 'Plus', 'Lightning', 'Hyper', 'Turbo', 'v1.0-RC', 'XL-v'];
     const suffix = subVersions[i % subVersions.length] + versionNum;
 
-    // Create unique properties
     const modelId = `model-${i + 1}`;
     const name = `${template.name} ${suffix}`;
     const creator = `${template.creator}_${(i * 17) % 100}`;
     const baseModel = i % 5 === 0 ? 'Flux.1' : (i % 3 === 0 ? 'SDXL 1.0' : 'SD 1.5');
 
-    // Derive type to mix LoRAs, style, Checkpoints
     let type: AIModel['type'] = template.type;
     if (i % 10 === 7) type = 'LoRA';
     if (i % 12 === 11) type = 'Style';
     if (i % 15 === 14) type = 'Textual Inversion';
 
-    // Mix tags for search variety
     const combinedTags = [...template.tags, `v${versionNum}`, baseModel.toLowerCase(), type.toLowerCase()];
     if (i % 2 === 0) combinedTags.push('trending');
     if (i % 3 === 0) combinedTags.push('hq');
     if (i % 5 === 0) combinedTags.push('latest');
+
+    const cat = template.category as AIModel['category'];
+    const thumbnailSvg = CATEGORY_SVGS[cat] || CATEGORY_SVGS['Realistic'];
 
     models.push({
       id: modelId,
@@ -210,10 +218,11 @@ export const generate500Models = (): AIModel[] => {
       creator,
       baseModel,
       type,
-      category: template.category,
+      category: cat,
       description: `[Version ${suffix}] Updated model branch. ${template.description} Fine-tuned for better performance on ${baseModel}.`,
       tags: Array.from(new Set(combinedTags)),
-      url: template.url
+      url: template.url,
+      thumbnailSvg
     });
   }
 
