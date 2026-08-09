@@ -29,7 +29,9 @@ import {
   Eye,
   Heart,
   Zap,
-  Flame
+  Flame,
+  Sun,
+  Moon
 } from 'lucide-react'
 import { ALL_MODELS, AIModel } from './modelsData'
 
@@ -114,7 +116,30 @@ const translations = {
     spellTitle: '高级咒语魔法施法器 (Spellbook Selector)',
     spellSub: '点击以下各系法术，一键为积极提示词「注入」对应的唯美画风和采样增强咒语！',
     castingActive: '正在释放魔法「{spell}」...',
-    spellCastBtn: '吟唱施法'
+    spellCastBtn: '吟唱施法',
+
+    // External models translations
+    externalModelBtn: '添加外接模型',
+    externalModelTitle: '配置外接模型',
+    extModelName: '模型名称',
+    extModelUrl: 'HuggingFace ID 或 API 链接',
+    extModelUrlPlaceholder: '例如: runwayml/stable-diffusion-v1.5 或 https://...',
+    extModelType: '模型类型',
+    extModelCategory: '模型分类',
+    extModelDesc: '模型简介',
+    extModelTags: '模型标签 (逗号分隔)',
+    extModelThumb: '效果图/预览图链接 (可选)',
+    extSaveBtn: '保存模型',
+    extCancelBtn: '取消',
+    extSuccessMsg: '外接模型保存成功！可以在下方中心进行搜索、收藏、以及一键绘图。',
+    extErrorMsg: '请输入模型名称与外接地址！',
+    externalBadge: '外接',
+    deleteModelTooltip: '删除此模型',
+    themeToggleLabel: '主题切换',
+    lightMode: '浅色模式',
+    darkMode: '深色模式',
+    enhanceQualityLabel: '画面高清修复 (AI Quality Enhance)',
+    enhanceQualitySub: '启用后自动对提示词进行唯美大师级拓写与采样降噪增强，生成极致高画质图片'
   },
   en: {
     title: 'White Fox AI II - Intelligent Painting Panel',
@@ -195,7 +220,30 @@ const translations = {
     spellTitle: 'Spellbook Magic Styler',
     spellSub: 'Cast ancient aesthetic spells to automatically inject high-fidelity modifiers and sampling scheduler tags into your prompts.',
     castingActive: 'Casting magical spell 「{spell}」...',
-    spellCastBtn: 'Cast Spell'
+    spellCastBtn: 'Cast Spell',
+
+    // External models translations
+    externalModelBtn: 'Add External Model',
+    externalModelTitle: 'Configure External Model',
+    extModelName: 'Model Name',
+    extModelUrl: 'HuggingFace ID or API URL',
+    extModelUrlPlaceholder: 'e.g., runwayml/stable-diffusion-v1.5 or https://...',
+    extModelType: 'Model Type',
+    extModelCategory: 'Model Category',
+    extModelDesc: 'Model Description',
+    extModelTags: 'Model Tags (comma split)',
+    extModelThumb: 'Preview Image URL (optional)',
+    extSaveBtn: 'Save Model',
+    extCancelBtn: 'Cancel',
+    extSuccessMsg: 'External model saved successfully! You can search or draw with it now.',
+    extErrorMsg: 'Please fill out Model Name and HuggingFace ID / URL!',
+    externalBadge: 'External',
+    deleteModelTooltip: 'Delete this model',
+    themeToggleLabel: 'Theme Mode',
+    lightMode: 'Light Mode',
+    darkMode: 'Dark Mode',
+    enhanceQualityLabel: 'AI Quality Enhance',
+    enhanceQualitySub: 'Enable premium prompt expansion and advanced sampling denoising for high-definition masterworks'
   }
 }
 
@@ -394,9 +442,51 @@ export default function App() {
   const [isAuthorized, setIsAuthorized] = useState(false)
   const [authError, setAuthError] = useState('')
 
-  // UI Theme Settings
-  const [bgColor, setBgColor] = useState('#0f172a') // Default Slate 900
-  const [customBgColor, setCustomBgColor] = useState('#0f172a')
+  // UI Theme Settings (Dark/Light)
+  const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('whitefox_theme_mode') as 'dark' | 'light') || 'dark'
+  })
+  const [bgColor, setBgColor] = useState(() => {
+    const saved = localStorage.getItem('whitefox_bg_color')
+    if (saved) return saved
+    const initialTheme = localStorage.getItem('whitefox_theme_mode') || 'dark'
+    return initialTheme === 'light' ? '#f8fafc' : '#0f172a'
+  })
+  const [customBgColor, setCustomBgColor] = useState(bgColor)
+
+  const isLight = themeMode === 'light'
+
+  // Consolidated class styles mapping for perfect Dark/Light mode switcher!
+  const theme = {
+    card: isLight ? 'bg-white/95 border border-slate-200/90 shadow-md text-slate-800' : 'bg-slate-900/90 border border-slate-800 text-white',
+    innerCard: isLight ? 'bg-slate-50 border border-slate-150 text-slate-800' : 'bg-slate-950 border border-slate-850',
+    input: isLight ? 'bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-rose-500' : 'bg-slate-950 border border-slate-800 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-rose-400',
+    textTitle: isLight ? 'text-slate-800 font-bold' : 'text-slate-100 font-bold',
+    textDesc: isLight ? 'text-slate-600' : 'text-slate-400',
+    textLabel: isLight ? 'text-slate-700' : 'text-slate-300',
+    textMuted: isLight ? 'text-slate-400 font-medium' : 'text-slate-500 font-medium',
+    textBody: isLight ? 'text-slate-800' : 'text-slate-200',
+    btnSecondary: isLight ? 'bg-slate-100 hover:bg-slate-200 border border-slate-350 text-slate-700' : 'bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300',
+    headerBg: isLight ? 'border-b border-slate-200 bg-white/90 shadow-sm' : 'border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md',
+    headerTitle: isLight ? 'bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent' : 'bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent',
+    headerSub: isLight ? 'text-slate-500' : 'text-slate-400',
+    badge: isLight ? 'bg-slate-100 border border-slate-200 text-slate-600' : 'bg-slate-950 border border-slate-800 text-slate-300',
+    bgHeaderItem: isLight ? 'bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700' : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300',
+    textHeaderItem: isLight ? 'text-slate-700' : 'text-slate-300',
+  }
+
+  // Toggle theme mode handler
+  const toggleTheme = () => {
+    const nextTheme = themeMode === 'dark' ? 'light' : 'dark'
+    setThemeMode(nextTheme)
+    localStorage.setItem('whitefox_theme_mode', nextTheme)
+
+    // Auto shift background colors to beautiful defaults
+    const newBg = nextTheme === 'light' ? '#f8fafc' : '#0f172a'
+    setBgColor(newBg)
+    setCustomBgColor(newBg)
+    localStorage.setItem('whitefox_bg_color', newBg)
+  }
 
   // Drawing mode
   const [drawMode, setDrawMode] = useState<'txt2img' | 'img2img' | 'reference'>('txt2img')
@@ -411,6 +501,7 @@ export default function App() {
   const [steps, setSteps] = useState(25)
   const [cfgScale, setCfgScale] = useState(7.5)
   const [seed, setSeed] = useState(-1)
+  const [enhanceQuality, setEnhanceQuality] = useState(true)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [refImage, setRefImage] = useState<string | null>(null)
 
@@ -438,6 +529,22 @@ export default function App() {
   const [savedModelIds, setSavedModelIds] = useState<string[]>([])
   const [selectedActiveModel, setSelectedActiveModel] = useState<AIModel | null>(null)
   const [translatedModelIds, setTranslatedModelIds] = useState<string[]>([])
+
+  // External connected models list
+  const [externalModels, setExternalModels] = useState<AIModel[]>(() => {
+    const saved = localStorage.getItem('whitefox_external_models')
+    return saved ? JSON.parse(saved) : []
+  })
+
+  // External Model Form States
+  const [showExtForm, setShowExtForm] = useState(false)
+  const [extName, setExtName] = useState('')
+  const [extUrl, setExtUrl] = useState('')
+  const [extType, setExtType] = useState<'Checkpoint' | 'LoRA' | 'Textual Inversion' | 'Style'>('Checkpoint')
+  const [extCategory, setExtCategory] = useState<AIModel['category']>('Realistic')
+  const [extDesc, setExtDesc] = useState('')
+  const [extTags, setExtTags] = useState('')
+  const [extThumb, setExtThumb] = useState('')
 
   // Prompt Library states
   const [promptLibrary, setPromptLibrary] = useState<any[]>(INITIAL_PROMPTS)
@@ -649,6 +756,70 @@ export default function App() {
     localStorage.setItem('whitefox_prompt_library', JSON.stringify(updated))
   }
 
+  // External Model Handlers
+  const handleSaveExternalModel = () => {
+    if (!extName || !extUrl) {
+      alert(t.extErrorMsg)
+      return
+    }
+
+    const CATEGORY_IMAGES: Record<string, string> = {
+      'Realistic': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+      'Anime': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=120&h=120&q=80',
+      '3D / Game': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80',
+      'Sci-Fi': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=120&h=120&q=80',
+      'Fantasy': 'https://images.unsplash.com/photo-1519074002996-a69e7ac46a42?auto=format&fit=crop&w=120&h=120&q=80',
+      'Artistic': 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=120&h=120&q=80',
+      'Design': 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=120&h=120&q=80'
+    }
+
+    const finalThumb = extThumb || CATEGORY_IMAGES[extCategory] || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80'
+
+    const cleanTags = extTags
+      ? extTags.split(',').map(tag => tag.trim()).filter(Boolean)
+      : ['external', extCategory.toLowerCase(), extType.toLowerCase()]
+
+    const newExtModel: AIModel = {
+      id: `ext-${Date.now()}`,
+      name: extName,
+      creator: 'LocalUser',
+      baseModel: 'Custom',
+      type: extType,
+      category: extCategory,
+      description: extDesc || `Connected custom external model with parameters. Run generation directly with 1-click.`,
+      tags: cleanTags,
+      url: extUrl,
+      thumbnailUrl: finalThumb,
+      isExternal: true
+    }
+
+    const updated = [newExtModel, ...externalModels]
+    setExternalModels(updated)
+    localStorage.setItem('whitefox_external_models', JSON.stringify(updated))
+
+    // Reset
+    setExtName('')
+    setExtUrl('')
+    setExtDesc('')
+    setExtTags('')
+    setExtThumb('')
+    setShowExtForm(false)
+    alert(t.extSuccessMsg)
+  }
+
+  const handleDeleteExternalModel = (modelId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (confirm(lang === 'zh' ? '确定要删除此外部模型吗？' : 'Are you sure you want to delete this external model?')) {
+      const updated = externalModels.filter(m => m.id !== modelId)
+      setExternalModels(updated)
+      localStorage.setItem('whitefox_external_models', JSON.stringify(updated))
+
+      if (selectedActiveModel?.id === modelId) {
+        setSelectedActiveModel(null)
+      }
+    }
+  }
+
   // Model Hub Helper functions
   const toggleSaveModel = (modelId: string) => {
     let updated: string[] = []
@@ -731,7 +902,9 @@ export default function App() {
       // Pass selected model data to drive backends
       activeModelName: currentModel ? currentModel.name : null,
       activeModelType: currentModel ? currentModel.type : null,
-      activeModelCategory: currentModel ? currentModel.category : null
+      activeModelCategory: currentModel ? currentModel.category : null,
+      externalModelUrl: currentModel ? (currentModel.isExternal ? currentModel.url : null) : null,
+      enhanceQuality
     }
 
     try {
@@ -819,8 +992,10 @@ export default function App() {
   }
 
 
-  // Model Hub filtering logic: 500 items, pagination with exactly 20 items per view.
-  const filteredModels = ALL_MODELS.filter((model) => {
+  // Model Hub filtering logic: Combine external/custom models with preloaded ones
+  const combinedModelsPool = [...externalModels, ...ALL_MODELS]
+
+  const filteredModels = combinedModelsPool.filter((model) => {
     const matchesSearch =
       model.name.toLowerCase().includes(modelsSearch.toLowerCase()) ||
       model.creator.toLowerCase().includes(modelsSearch.toLowerCase()) ||
@@ -848,7 +1023,7 @@ export default function App() {
   }, [modelsSearch, selectedCategory, selectedType, totalPages]);
 
   // Bookmarked models objects list
-  const bookmarkedModelsList = ALL_MODELS.filter(m => savedModelIds.includes(m.id));
+  const bookmarkedModelsList = combinedModelsPool.filter(m => savedModelIds.includes(m.id));
 
   const t = translations[lang]
 
@@ -915,11 +1090,15 @@ export default function App() {
     )
   }
 
+  const bgPresets = isLight
+    ? ['#f8fafc', '#f1f5f9', '#f5f3ff', '#fff1f2']
+    : ['#0f172a', '#1e1b4b', '#1c1917', '#111827']
+
   return (
-    <div className="min-h-screen text-slate-100 transition-colors duration-500 pb-16" style={{ backgroundColor: bgColor }}>
+    <div className={`min-h-screen transition-colors duration-500 pb-16 ${theme.bodyText}`} style={{ backgroundColor: bgColor }}>
 
       {/* Header Bar */}
-      <header className="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50 px-4 py-3 shadow-sm">
+      <header className={`${theme.headerBg} sticky top-0 z-50 px-4 py-3 shadow-sm`}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
 
           <div className="flex items-center gap-3">
@@ -927,20 +1106,30 @@ export default function App() {
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+              <h1 className={`text-xl font-bold tracking-tight ${theme.headerTitle}`}>
                 白狐AI二
               </h1>
-              <p className="text-[10px] text-slate-400 font-medium">Bilingual Intelligent AI Painting Hub</p>
+              <p className={`text-[10px] ${theme.headerSub} font-medium`}>Bilingual Intelligent AI Painting Hub</p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className={`flex items-center gap-1.5 ${theme.bgHeaderItem} text-xs px-3 py-1.5 rounded-full transition`}
+              title={isLight ? t.darkMode : t.lightMode}
+            >
+              {isLight ? <Moon className="w-3.5 h-3.5 text-indigo-500" /> : <Sun className="w-3.5 h-3.5 text-amber-400" />}
+              <span>{isLight ? t.darkMode : t.lightMode}</span>
+            </button>
+
             {/* Background color config */}
-            <div className="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-full text-xs">
+            <div className={`flex items-center gap-1.5 ${theme.bgHeaderItem} px-3 py-1.5 rounded-full text-xs`}>
               <Palette className="w-3.5 h-3.5 text-rose-400" />
               <span>{t.bgColor}:</span>
               <div className="flex items-center gap-1 ml-1">
-                {['#0f172a', '#1e1b4b', '#1c1917', '#111827'].map((c) => (
+                {bgPresets.map((c) => (
                   <button
                     key={c}
                     onClick={() => changeBgColor(c)}
@@ -964,7 +1153,7 @@ export default function App() {
             {/* Language toggle */}
             <button
               onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs px-3 py-1.5 rounded-full transition"
+              className={`flex items-center gap-1.5 ${theme.bgHeaderItem} text-xs px-3 py-1.5 rounded-full transition`}
             >
               <Globe className="w-3.5 h-3.5 text-blue-400" />
               <span>{lang === 'zh' ? 'English' : '中文'}</span>
@@ -973,7 +1162,7 @@ export default function App() {
             {/* Default Config recovery */}
             <button
               onClick={handleRestoreDefaults}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs px-3 py-1.5 rounded-full transition text-slate-300"
+              className={`flex items-center gap-1.5 ${theme.bgHeaderItem} text-xs px-3 py-1.5 rounded-full transition`}
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>{t.restoreDefaults}</span>
@@ -1000,10 +1189,10 @@ export default function App() {
         <section className="lg:col-span-5 space-y-6">
 
           {/* Prompt Areas */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
 
             {/* Mode selection tabs */}
-            <div className="flex bg-slate-950 p-1 rounded-xl gap-1">
+            <div className={`flex ${theme.innerCard} p-1 rounded-xl gap-1`}>
               {[
                 { id: 'txt2img', label: t.txt2img },
                 { id: 'img2img', label: t.img2img },
@@ -1128,8 +1317,8 @@ export default function App() {
           </div>
 
           {/* Spell Selector Section (提示词魔法施法器) */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-            <h3 className="text-sm font-bold flex items-center gap-2 text-purple-400 border-b border-slate-800 pb-2">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-3`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 text-purple-400 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
               <Flame className="w-4 h-4" />
               {t.spellTitle}
             </h3>
@@ -1153,8 +1342,8 @@ export default function App() {
           </div>
 
           {/* Model & Platform API Configuration */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <h3 className="text-sm font-bold flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
               <Settings className="w-4 h-4 text-emerald-400" />
               {t.providerConfig}
             </h3>
@@ -1294,11 +1483,32 @@ export default function App() {
           </div>
 
           {/* Core Drawing Parameters */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <h3 className="text-sm font-bold flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
               <ChevronRight className="w-4 h-4 text-rose-400" />
               {t.paramsTitle}
             </h3>
+
+            {/* AI Quality Enhance Switcher */}
+            <div className={`p-3 rounded-xl ${theme.innerCard} border flex items-center justify-between gap-3 transition-colors duration-200`}>
+              <div className="space-y-0.5">
+                <span className="text-[11px] font-bold text-rose-500 uppercase tracking-wider block">
+                  ✨ {t.enhanceQualityLabel}
+                </span>
+                <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'} block leading-relaxed`}>
+                  {t.enhanceQualitySub}
+                </span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  checked={enhanceQuality}
+                  onChange={(e) => setEnhanceQuality(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+              </label>
+            </div>
 
             {/* Sampling Selection */}
             <div>
@@ -1418,9 +1628,9 @@ export default function App() {
         <section className="lg:col-span-7 space-y-6">
 
           {/* Main Visual Generation Box */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className={`${theme.card} rounded-2xl p-6 shadow-xl space-y-4`}>
 
-            <div className="relative aspect-square sm:aspect-[4/3] bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden group">
+            <div className={`relative aspect-square sm:aspect-[4/3] ${theme.innerCard} rounded-xl border flex items-center justify-center overflow-hidden group`}>
               {generating ? (
                 <div className="text-center space-y-3">
                   <div className="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -1513,18 +1723,139 @@ export default function App() {
           </div>
 
           {/* Model Hub Section (500 preloaded models, 20 visible search options) */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <div className="border-b border-slate-800 pb-2">
-              <h3 className="text-sm font-bold flex items-center gap-2 text-rose-400">
-                <Layers className="w-4 h-4" />
-                {t.modelHubTitle}
-              </h3>
-              <p className="text-[10px] text-slate-400 mt-1">{t.modelHubSub}</p>
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <div className={`border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`}>
+              <div>
+                <h3 className="text-sm font-bold flex items-center gap-2 text-rose-400">
+                  <Layers className="w-4 h-4" />
+                  {t.modelHubTitle}
+                </h3>
+                <p className={`text-[10px] ${theme.textDesc} mt-1`}>{t.modelHubSub}</p>
+              </div>
+
+              {/* Add Custom/External Model Toggle Button */}
+              <button
+                onClick={() => setShowExtForm(!showExtForm)}
+                className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow self-start sm:self-auto shrink-0"
+              >
+                {showExtForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                <span>{t.externalModelBtn}</span>
+              </button>
             </div>
+
+            {/* Collapsible Add External Model Form */}
+            {showExtForm && (
+              <div className={`${theme.innerCard} p-4 rounded-xl space-y-3 border`}>
+                <h4 className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'} flex items-center gap-1.5 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-1.5`}>
+                  <Plus className="w-3.5 h-3.5 text-rose-400" />
+                  {t.externalModelTitle}
+                </h4>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelName} *</label>
+                    <input
+                      type="text"
+                      value={extName}
+                      onChange={(e) => setExtName(e.target.value)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                      placeholder={lang === 'zh' ? '输入自定义模型名称' : 'e.g., OpenJourney v4'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelUrl} *</label>
+                    <input
+                      type="text"
+                      value={extUrl}
+                      onChange={(e) => setExtUrl(e.target.value)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                      placeholder={t.extModelUrlPlaceholder}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelType}</label>
+                    <select
+                      value={extType}
+                      onChange={(e) => setExtType(e.target.value as any)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                    >
+                      <option value="Checkpoint">Checkpoint</option>
+                      <option value="LoRA">LoRA</option>
+                      <option value="Style">Style</option>
+                      <option value="Textual Inversion">Textual Inversion</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelCategory}</label>
+                    <select
+                      value={extCategory}
+                      onChange={(e) => setExtCategory(e.target.value as any)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                    >
+                      {['Realistic', 'Anime', '3D / Game', 'Sci-Fi', 'Fantasy', 'Artistic', 'Design'].map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelTags}</label>
+                    <input
+                      type="text"
+                      value={extTags}
+                      onChange={(e) => setExtTags(e.target.value)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                      placeholder="e.g., retro, anime, realistic"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelThumb}</label>
+                    <input
+                      type="text"
+                      value={extThumb}
+                      onChange={(e) => setExtThumb(e.target.value)}
+                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                      placeholder="https://example.com/thumb.jpg (Optional)"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-slate-400 mb-1">{t.extModelDesc}</label>
+                  <textarea
+                    value={extDesc}
+                    onChange={(e) => setExtDesc(e.target.value)}
+                    rows={2}
+                    className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                    placeholder={lang === 'zh' ? '输入该模型的详细参数和特征描述' : 'Describe the characteristics of this model'}
+                  />
+                </div>
+
+                <div className="flex gap-2 justify-end pt-1">
+                  <button
+                    onClick={() => setShowExtForm(false)}
+                    className="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs rounded-lg transition"
+                  >
+                    {t.extCancelBtn}
+                  </button>
+                  <button
+                    onClick={handleSaveExternalModel}
+                    className="px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition shadow"
+                  >
+                    {t.extSaveBtn}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Bookmarked/Saved Models Mini-Section */}
             {bookmarkedModelsList.length > 0 && (
-              <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+              <div className={`${theme.innerCard} p-3 rounded-xl border space-y-2`}>
                 <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
                   <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
                   {t.savedModelsTitle}
@@ -1562,7 +1893,7 @@ export default function App() {
                   value={modelsSearch}
                   onChange={(e) => setModelsSearch(e.target.value)}
                   placeholder={t.searchPlaceholder}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white placeholder-slate-600 focus:outline-none"
+                  className={`w-full ${theme.input} rounded-xl py-2.5 pl-9 pr-4 text-xs`}
                 />
               </div>
 
@@ -1572,7 +1903,7 @@ export default function App() {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-2 py-1 rounded ${selectedCategory === cat ? 'bg-rose-500 text-white' : 'bg-slate-950 text-slate-400 hover:text-slate-200'}`}
+                    className={`px-2.5 py-1 rounded transition-colors ${selectedCategory === cat ? 'bg-rose-500 text-white font-bold' : isLight ? 'bg-slate-100 text-slate-600 hover:text-slate-950 border border-slate-200' : 'bg-slate-950 text-slate-400 hover:text-slate-100 border border-slate-850'}`}
                   >
                     {cat}
                   </button>
@@ -1580,13 +1911,13 @@ export default function App() {
               </div>
 
               {/* Sub filters */}
-              <div className="flex flex-wrap gap-1 text-[9px] text-slate-400 border-t border-slate-850/60 pt-1.5">
+              <div className={`flex flex-wrap gap-1 text-[9px] ${isLight ? 'text-slate-500 border-t border-slate-200 pt-1.5' : 'text-slate-400 border-t border-slate-850/60 pt-1.5'}`}>
                 <span className="mr-1 py-0.5">{t.modelType}:</span>
                 {['All', 'Checkpoint', 'LoRA', 'Style', 'Textual Inversion'].map((tp) => (
                   <button
                     key={tp}
                     onClick={() => setSelectedType(tp)}
-                    className={`px-1.5 py-0.5 rounded ${selectedType === tp ? 'border border-rose-500/50 text-rose-300' : 'hover:text-white'}`}
+                    className={`px-1.5 py-0.5 rounded ${selectedType === tp ? 'border border-rose-500/50 text-rose-500 font-bold' : 'hover:text-rose-450'}`}
                   >
                     {tp}
                   </button>
@@ -1617,52 +1948,66 @@ export default function App() {
                 return (
                   <div
                     key={model.id}
-                    className={`bg-slate-950 border p-3 rounded-xl flex gap-3 transition-all ${isActive ? 'border-emerald-500/50 shadow-md shadow-emerald-900/10' : 'border-slate-850 hover:border-slate-700'}`}
+                    className={`border p-3 rounded-xl flex gap-3 transition-all ${isActive ? 'border-emerald-500 bg-emerald-500/5 shadow-md' : isLight ? 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-850' : 'bg-slate-950 border-slate-850 hover:border-slate-700'}`}
                   >
                     {/* Model sample generation preview thumbnail image */}
                     <img
                       src={model.thumbnailUrl}
                       alt={model.name}
-                      className="w-14 h-14 rounded-lg object-cover border border-slate-800 shrink-0 self-start"
+                      className="w-14 h-14 rounded-lg object-cover border border-slate-700 shrink-0 self-start"
                       loading="lazy"
                     />
 
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start gap-1 mb-1">
-                          <span className="text-[11px] font-bold text-slate-100 truncate max-w-[120px]">{model.name}</span>
-                          <div className="flex gap-1 shrink-0">
+                          <span className={`text-[11px] font-bold ${isLight ? 'text-slate-800' : 'text-slate-100'} truncate max-w-[120px]`}>{model.name}</span>
+                          <div className="flex gap-1 shrink-0 items-center">
                             {/* Translation Trigger Button */}
                             <button
                               onClick={toggleTranslate}
-                              className={`text-[9px] px-1.5 py-0.5 rounded transition font-semibold border ${isTranslated ? 'bg-rose-500/10 border-rose-500/30 text-rose-450' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'}`}
+                              className={`text-[9px] px-1.5 py-0.5 rounded transition font-semibold border ${isTranslated ? 'bg-rose-500/15 border-rose-500/30 text-rose-500' : isLight ? 'bg-white border-slate-250 text-slate-600 hover:text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'}`}
                             >
                               {isTranslated ? t.translatedLabel : t.oneClickTranslate}
                             </button>
                             <button
                               onClick={() => toggleSaveModel(model.id)}
-                              className={`p-1 rounded hover:bg-slate-900 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
+                              className={`p-1 rounded hover:bg-slate-800/20 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
                             >
                               <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500' : ''}`} />
                             </button>
+                            {model.isExternal && (
+                              <button
+                                onClick={(e) => handleDeleteExternalModel(model.id, e)}
+                                className="p-1 rounded hover:bg-red-500/15 text-red-500 transition"
+                                title={t.deleteModelTooltip}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </div>
 
                         <div className="flex flex-wrap gap-1 mb-1.5">
-                          <span className="text-[8px] bg-slate-900 text-rose-350 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{typeLabel}</span>
-                          <span className="text-[8px] bg-slate-900 text-sky-400 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{model.baseModel}</span>
-                          <span className="text-[8px] bg-slate-900 text-emerald-450 border border-slate-800 px-1 py-0.1 rounded-md font-bold">{categoryLabel}</span>
+                          {model.isExternal && (
+                            <span className="text-[8px] bg-amber-500/15 text-amber-500 border border-amber-500/30 px-1 py-0.1 rounded-md font-bold">
+                              {t.externalBadge}
+                            </span>
+                          )}
+                          <span className="text-[8px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1 py-0.1 rounded-md font-bold">{typeLabel}</span>
+                          <span className="text-[8px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1 py-0.1 rounded-md font-bold">{model.baseModel}</span>
+                          <span className="text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1 py-0.1 rounded-md font-bold">{categoryLabel}</span>
                         </div>
 
-                        <p className="text-[10px] text-slate-450 line-clamp-2 italic mb-2 leading-relaxed">{displayDescription}</p>
+                        <p className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-450'} line-clamp-2 italic mb-2 leading-relaxed`}>{displayDescription}</p>
                       </div>
 
-                      <div className="flex flex-col gap-2 border-t border-slate-850/40 pt-2 mt-auto">
-                        <span className="text-[9px] text-slate-500 truncate">{t.author}: {model.creator}</span>
+                      <div className="flex flex-col gap-2 border-t border-slate-800/40 pt-2 mt-auto">
+                        <span className={`text-[9px] ${isLight ? 'text-slate-400' : 'text-slate-500'} truncate`}>{t.author}: {model.creator}</span>
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => applyModelToGenerator(model)}
-                            className="flex-1 text-[9px] bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 py-1 rounded transition font-medium"
+                            className={`flex-1 text-[9px] ${theme.btnSecondary} py-1 rounded transition font-medium`}
                           >
                             {t.applyModel}
                           </button>
@@ -1707,8 +2052,8 @@ export default function App() {
           </div>
 
           {/* Prompt Library */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <h3 className="text-sm font-bold flex items-center gap-2 border-b border-slate-800 pb-2">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
               <FolderHeart className="w-4 h-4 text-pink-400" />
               {t.promptLibrary}
             </h3>
@@ -1784,8 +2129,8 @@ export default function App() {
 
 
           {/* History records */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <div className={`flex justify-between items-center border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <History className="w-4 h-4 text-emerald-400" />
                 {t.historyTitle}

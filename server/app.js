@@ -109,7 +109,9 @@ app.post('/api/generate', async (c) => {
       // Chosen custom model parameters
       activeModelName = null,
       activeModelType = null,
-      activeModelCategory = null
+      activeModelCategory = null,
+      externalModelUrl = null,
+      enhanceQuality = true
     } = body
 
     if (!prompt) {
@@ -131,6 +133,12 @@ app.post('/api/generate', async (c) => {
     let drivenPrompt = prompt
     let drivenNegative = negative_prompt
 
+    // Enhance Quality - inject premium aesthetic styles if enabled
+    const isQualityEnhanced = enhanceQuality === true || enhanceQuality === 'true'
+    if (isQualityEnhanced) {
+      drivenPrompt += ', masterpiece, highly detailed texture, 8k resolution, photorealistic cinematic lighting, sharp focus'
+    }
+
     // Map sampler methods to exact style descriptions so that the generator's aesthetics are influenced
     const SAMPLER_STYLE_MAP = {
       'Euler a': ', euler ancestral noise, soft skin, cinematic focus',
@@ -144,7 +152,73 @@ app.post('/api/generate', async (c) => {
     drivenPrompt += samplerStyler
 
     // Log the driven configuration
-    console.log(`[AI Drawing Style Drive] Sampler: ${sampler}, Model: ${activeModelName || 'Default'}`)
+    console.log(`[AI Drawing Style Drive] Sampler: ${sampler}, Model: ${activeModelName || 'Default'}, ExternalModel: ${externalModelUrl || 'None'}`)
+
+    // 0. External/Connected Model Dynamic Handling
+    if (externalModelUrl) {
+      console.log(`[External Model Router] Processing external model request: ${externalModelUrl}`);
+      const isHuggingFaceId = externalModelUrl.includes('/') && !externalModelUrl.startsWith('http');
+      const isHuggingFaceUrl = externalModelUrl.startsWith('https://api-inference.huggingface.co/models/');
+
+      if (isHuggingFaceId || isHuggingFaceUrl) {
+        const hfModelUrl = isHuggingFaceId
+          ? `https://api-inference.huggingface.co/models/${externalModelUrl}`
+          : externalModelUrl;
+
+        console.log(`[External Model Router] Routing to Hugging Face: ${hfModelUrl}`);
+        const payload = {
+          inputs: drivenPrompt,
+          parameters: {
+            negative_prompt: drivenNegative,
+            width: parseInt(width),
+            height: parseInt(height),
+            guidance_scale: parseFloat(cfg_scale),
+            num_inference_steps: parseInt(steps),
+            seed: finalSeed,
+            scheduler: sampler
+          }
+        };
+
+        const headers = { 'Content-Type': 'application/json' };
+        const hfToken = process.env.HF_TOKEN || c.env?.HF_TOKEN;
+        if (hfToken) {
+          headers['Authorization'] = `Bearer ${hfToken}`;
+        }
+
+        try {
+          const response = await fetch(hfModelUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            return c.json({ image: `data:image/png;base64,${base64}` });
+          } else {
+            const errText = await response.text();
+            console.warn(`[External Model Router] HuggingFace endpoint failed (Status: ${response.status} - ${errText}). Falling back to Pollinations dynamic weights...`);
+          }
+        } catch (e) {
+          console.error(`[External Model Router] Hugging Face request failed: ${e.message}`);
+        }
+      }
+
+      // If HF failed or it's a model name, route to Pollinations AI with dynamic model parameter
+      // Pollinations AI supports passing custom model names which loads matched HuggingFace checkpoints automatically!
+      const encodedPrompt = encodeURIComponent(drivenPrompt + (drivenNegative ? ` (negative prompt: ${drivenNegative})` : ''));
+      const queryParams = new URLSearchParams({
+        model: externalModelUrl,
+        width: width.toString(),
+        height: height.toString(),
+        seed: finalSeed.toString(),
+        nologo: 'true',
+        enhance: isQualityEnhanced ? 'true' : 'false'
+      });
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?${queryParams.toString()}`;
+      return c.json({ image: imageUrl });
+    }
 
     // 1. Cloudflare Workers AI
     if (provider === 'cloudflare') {
@@ -302,7 +376,7 @@ app.post('/api/generate', async (c) => {
         height: height.toString(),
         seed: finalSeed.toString(),
         nologo: 'true',
-        enhance: 'false'
+        enhance: isQualityEnhanced ? 'true' : 'false'
       })
 
       if (image && (mode === 'img2img' || mode === 'reference')) {
