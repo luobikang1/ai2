@@ -111,7 +111,8 @@ app.post('/api/generate', async (c) => {
       activeModelType = null,
       activeModelCategory = null,
       externalModelUrl = null,
-      enhanceQuality = true
+      enhanceQuality = true,
+      drawingModel = 'flux'
     } = body
 
     if (!prompt) {
@@ -340,38 +341,75 @@ app.post('/api/generate', async (c) => {
     }
 
     // 4. Free AI Drawing Platforms (Default with True Model Category Driving)
-    // We dynamically map the API models based on the applied model category!
+    // Support dynamic perchance-style multiple model drawing!
     let targetApiId = selectedApiId
+    let isDynamicHuggingFace = false
+    let dynamicHuggingFaceUrl = ''
 
-    // Support routing search-enabled or selected models dynamically using both names and categories!
-    const effectiveCategory = activeModelCategory || (activeModelName ? (
-      activeModelName.toLowerCase().includes('anime') || activeModelName.toLowerCase().includes('counterfeit') || activeModelName.toLowerCase().includes('meina') ? 'Anime' :
-      activeModelName.toLowerCase().includes('3d') || activeModelName.toLowerCase().includes('pixar') || activeModelName.toLowerCase().includes('clay') ? '3D / Game' :
-      activeModelName.toLowerCase().includes('cyber') || activeModelName.toLowerCase().includes('cyberpunk') || activeModelName.toLowerCase().includes('synthwave') || activeModelName.toLowerCase().includes('ghost') ? 'Sci-Fi' : 'Realistic'
-    ) : null)
+    if (drawingModel) {
+      console.log(`[Dynamic Drawing Model] Selected model: ${drawingModel}`)
+      const modelMap = {
+        'flux': 'pollinations-flux',
+        'turbo': 'pollinations-turbo',
+        'anime': 'pollinations-anime',
+        '3d': 'pollinations-3d',
+        'cyberpunk': 'pollinations-niche',
+        'sdxl': 'hf-sdxl',
+        'sd15': 'hf-sd15',
+        'animagine': 'hf-animagine',
+        'playground': 'hf-playground'
+      }
 
-    if (effectiveCategory === 'Anime') {
-      targetApiId = 'pollinations-anime'
-    } else if (effectiveCategory === '3D / Game') {
-      targetApiId = 'pollinations-3d'
-    } else if (effectiveCategory === 'Sci-Fi') {
-      targetApiId = 'pollinations-niche'
-    } else if (effectiveCategory === 'Realistic') {
-      targetApiId = 'pollinations-flux'
-    } else if (effectiveCategory === 'Fantasy') {
-      targetApiId = 'pollinations-flux'
+      if (modelMap[drawingModel]) {
+        targetApiId = modelMap[drawingModel]
+      } else if (drawingModel.includes('/') && !drawingModel.startsWith('http')) {
+        // It's a custom Hugging Face repository model path!
+        isDynamicHuggingFace = true
+        dynamicHuggingFaceUrl = `https://api-inference.huggingface.co/models/${drawingModel}`
+        console.log(`[Dynamic Drawing Model] Custom Hugging Face path detected: ${dynamicHuggingFaceUrl}`)
+      } else {
+        // Fall back to category mapping or custom pollinations weights
+      }
+    }
+
+    // Fallback to category driving if no specific drawingModel mapping matched
+    if (!drawingModel || (!isDynamicHuggingFace && targetApiId === selectedApiId)) {
+      const effectiveCategory = activeModelCategory || (activeModelName ? (
+        activeModelName.toLowerCase().includes('anime') || activeModelName.toLowerCase().includes('counterfeit') || activeModelName.toLowerCase().includes('meina') ? 'Anime' :
+        activeModelName.toLowerCase().includes('3d') || activeModelName.toLowerCase().includes('pixar') || activeModelName.toLowerCase().includes('clay') ? '3D / Game' :
+        activeModelName.toLowerCase().includes('cyber') || activeModelName.toLowerCase().includes('cyberpunk') || activeModelName.toLowerCase().includes('synthwave') || activeModelName.toLowerCase().includes('ghost') ? 'Sci-Fi' : 'Realistic'
+      ) : null)
+
+      if (effectiveCategory === 'Anime') {
+        targetApiId = 'pollinations-anime'
+      } else if (effectiveCategory === '3D / Game') {
+        targetApiId = 'pollinations-3d'
+      } else if (effectiveCategory === 'Sci-Fi') {
+        targetApiId = 'pollinations-niche'
+      } else if (effectiveCategory === 'Realistic') {
+        targetApiId = 'pollinations-flux'
+      } else if (effectiveCategory === 'Fantasy') {
+        targetApiId = 'pollinations-flux'
+      }
     }
 
     const selectedApi = FREE_APIS.find(a => a.id === targetApiId) || FREE_APIS[0]
 
-    if (selectedApi.type === 'pollinations') {
+    if (selectedApi.type === 'pollinations' && !isDynamicHuggingFace) {
       let finalPrompt = drivenPrompt
       if (drivenNegative) {
         finalPrompt += ` (negative prompt: ${drivenNegative})`
       }
       const encodedPrompt = encodeURIComponent(finalPrompt)
+
+      // Determine actual pollinations model parameter
+      let activePollinationsModel = selectedApi.model || 'flux'
+      if (drawingModel && !isDynamicHuggingFace && !FREE_APIS.some(api => api.id === drawingModel)) {
+        activePollinationsModel = drawingModel
+      }
+
       const queryParams = new URLSearchParams({
-        model: selectedApi.model || 'flux',
+        model: activePollinationsModel,
         width: width.toString(),
         height: height.toString(),
         seed: finalSeed.toString(),
@@ -399,7 +437,8 @@ app.post('/api/generate', async (c) => {
       return c.json({ image: imageUrl })
     }
 
-    if (selectedApi.type === 'huggingface') {
+    if (selectedApi.type === 'huggingface' || isDynamicHuggingFace) {
+      const targetUrl = isDynamicHuggingFace ? dynamicHuggingFaceUrl : selectedApi.url
       const payload = {
         inputs: drivenPrompt,
         parameters: {
@@ -419,7 +458,7 @@ app.post('/api/generate', async (c) => {
         headers['Authorization'] = `Bearer ${hfToken}`
       }
 
-      const response = await fetch(selectedApi.url, {
+      const response = await fetch(targetUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(payload)

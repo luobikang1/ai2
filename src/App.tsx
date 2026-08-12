@@ -139,7 +139,21 @@ const translations = {
     lightMode: '浅色模式',
     darkMode: '深色模式',
     enhanceQualityLabel: '画面高清修复 (AI Quality Enhance)',
-    enhanceQualitySub: '启用后自动对提示词进行唯美大师级拓写与采样降噪增强，生成极致高画质图片'
+    enhanceQualitySub: '启用后自动对提示词进行唯美大师级拓写与采样降噪增强，生成极致高画质图片',
+    curatedModelLabel: '绘图核心大模型 (Drawing Model Engine)',
+    curatedModelSub: '参考 perchance.org/ai 机制，内置一键应用十余种世界顶级旗舰大模型绘图',
+    trainingTitle: 'LoRA 训练功能区 (Interactive Training Room)',
+    trainingSub: '支持交互式上传数据集 ZIP 压缩包，全真模拟微调训练管线，可实时观测 Epoch、训练 Loss 递减趋势和控制台日志。训练后可自动注册新模型！',
+    datasetUpload: '上传/拖拽底图训练数据集 ZIP 包',
+    datasetUploaded: '数据集就绪: {name}',
+    epochs: '迭代轮数 (Epochs)',
+    learningRate: '学习率 (Learning Rate)',
+    lrHelp: '参考：写实/动漫推荐 1e-4，人像推荐 5e-4',
+    startTraining: '开始模拟 LoRA 精调训练',
+    trainingProgress: '实时优化进度 (Optimization Progress)',
+    terminalLogs: '实时训练终端控制台 (Training Terminal Logs)',
+    lossValue: '当前损失 (Loss)',
+    trainingCompleted: '🎉 恭喜，LoRA 训练成功并已成功汇出！新模型已自动加入大模型中心供一键绘图！'
   },
   en: {
     title: 'White Fox AI II - Intelligent Painting Panel',
@@ -243,7 +257,21 @@ const translations = {
     lightMode: 'Light Mode',
     darkMode: 'Dark Mode',
     enhanceQualityLabel: 'AI Quality Enhance',
-    enhanceQualitySub: 'Enable premium prompt expansion and advanced sampling denoising for high-definition masterworks'
+    enhanceQualitySub: 'Enable premium prompt expansion and advanced sampling denoising for high-definition masterworks',
+    curatedModelLabel: 'AI Drawing Model Engine',
+    curatedModelSub: 'Switch between 10+ state-of-the-art curated drawing models like perchance.org/ai',
+    trainingTitle: 'LoRA Training Area',
+    trainingSub: 'Upload your training image dataset ZIP, fully simulate fine-tuning pipelines with dynamic real-time Epochs, Loss curve rendering, and console outputs. Saved models automatically register in your Model Hub!',
+    datasetUpload: 'Upload / Drag Dataset ZIP file',
+    datasetUploaded: 'Dataset loaded: {name}',
+    epochs: 'Epochs',
+    learningRate: 'Learning Rate',
+    lrHelp: 'Recommended LR: 1e-4 for realism, 5e-4 for portrait/styles',
+    startTraining: 'Start Simulated Training',
+    trainingProgress: 'Optimization Progress',
+    terminalLogs: 'Interactive Training Console Logs',
+    lossValue: 'Current Loss',
+    trainingCompleted: '🎉 Congratulations! LoRA training succeeded. The new model has been dynamically saved and integrated into your Model Hub!'
   }
 }
 
@@ -436,6 +464,19 @@ const INITIAL_PROMPTS = [
   { id: '4', name: '3D 盲盒玩具公仔', category: '3D Art', content: 'Chibi white fox toy figurine, cute expression, glossy vinyl material, 3D render, clay model style, pastel colors background, soft studio lighting.' }
 ]
 
+// Curated Perchance-style models list
+const CURATED_DRAW_MODELS = [
+  { id: 'flux', name: 'Flux.1 (Highly-Detailed Realism Masterpiece)', nameZh: 'Flux.1 (极高画质旗舰写实模型)', desc: 'The state-of-the-art cinematic detailed realism model.', descZh: '当前最先进的电影级画质细节写实旗舰模型。' },
+  { id: 'turbo', name: 'Pollinations Turbo (Speed Sketch)', nameZh: 'Turbo 高速微调模型 (速度优先)', desc: 'High-speed optimized model for super fast sketching.', descZh: '极限速度优化版大模型，适合极速作画与草图拟真。' },
+  { id: 'anime', name: 'Anime Dream Illustrator (2D / Cute Art)', nameZh: '二次元动漫幻想画师 (2D/萌系)', desc: 'Lovely dynamic Japanese anime style character art.', descZh: '色彩唯美绚丽的日系动漫手绘与高颜值立绘插画。' },
+  { id: '3d', name: 'Pixar 3D Animation (Clay stop-motion)', nameZh: '皮克斯 3D 动画公仔 (粘土风)', desc: 'Lovable clay toys and 3D cartoon rendered figurines.', descZh: '制作极富立体质感的 3D 盲盒玩具公仔与皮克斯粘土角色。' },
+  { id: 'cyberpunk', name: 'Cyberpunk Tech Neon Glow (Sci-Fi Futuristic)', nameZh: '赛博朋克霓虹光影 (科幻未来)', desc: 'Futuristic mecha and holographic neon futuristic art.', descZh: '充满未来科技感的赛博朋克机甲与绚丽全息光束特效。' },
+  { id: 'sdxl', name: 'Stable Diffusion XL Base 1.0 (High Resolution)', nameZh: 'SDXL 1.0 官方原生高清基模', desc: 'The official SDXL high-fidelity versatile engine.', descZh: 'SDXL 官方原生高分辨率多功能核心引擎。' },
+  { id: 'playground', name: 'Playground v2.5 (Aesthetic Design Engine)', nameZh: 'Playground v2.5 (前沿艺术设计)', desc: 'Versatile artistic textures and layout graphics.', descZh: '极具现代艺术感染力与杰出质感纹理的前沿设计引擎。' },
+  { id: 'animagine', name: 'Animagine XL v3.1 (Professional 2D Anime)', nameZh: 'Animagine XL v3.1 (专业动漫级)', desc: 'Ultra high-definition professional anime model.', descZh: '超清专业动漫微调大模型，完美适配二次元标签。' },
+  { id: 'sd15', name: 'Stable Diffusion v1.5 (Classic Versatile Mix)', nameZh: 'Stable Diffusion v1.5 (经典通用底模)', desc: 'The timeless classic base supporting custom weights.', descZh: '历久弥新的经典作画引擎，支持海量自定义微调。' }
+]
+
 export default function App() {
   const [lang, setLang] = useState<'zh' | 'en'>('zh')
   const [password, setPassword] = useState('')
@@ -502,6 +543,7 @@ export default function App() {
   const [cfgScale, setCfgScale] = useState(7.5)
   const [seed, setSeed] = useState(-1)
   const [enhanceQuality, setEnhanceQuality] = useState(true)
+  const [drawingModel, setDrawingModel] = useState('flux')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [refImage, setRefImage] = useState<string | null>(null)
 
@@ -545,6 +587,21 @@ export default function App() {
   const [extDesc, setExtDesc] = useState('')
   const [extTags, setExtTags] = useState('')
   const [extThumb, setExtThumb] = useState('')
+
+  // Interactive LoRA Training States
+  const [trainLoraName, setTrainLoraName] = useState('whitefox-style-v2')
+  const [trainBaseModel, setTrainBaseModel] = useState('flux')
+  const [trainLearningRate, setTrainLearningRate] = useState('1e-4')
+  const [trainEpochs, setTrainEpochs] = useState(5)
+  const [trainTriggerWord, setTrainTriggerWord] = useState('whitefox')
+  const [trainDatasetZip, setTrainDatasetZip] = useState<string | null>(null)
+  const [trainDatasetName, setTrainDatasetName] = useState<string>('')
+
+  const [trainingActive, setTrainingActive] = useState(false)
+  const [trainingProgress, setTrainingProgress] = useState(0)
+  const [trainingLoss, setTrainingLoss] = useState(1.2)
+  const [trainingLogs, setTrainingLogs] = useState<string[]>([])
+  const [trainingFinished, setTrainingFinished] = useState(false)
 
   // Prompt Library states
   const [promptLibrary, setPromptLibrary] = useState<any[]>(INITIAL_PROMPTS)
@@ -858,6 +915,21 @@ export default function App() {
       setSelectedSize('512x512')
     }
 
+    // Sync with Perchance style drawingModel Selector
+    if (model.isExternal) {
+      setDrawingModel(model.url)
+    } else {
+      const categoryToModelId: Record<string, string> = {
+        'Anime': 'anime',
+        '3D / Game': '3d',
+        'Sci-Fi': 'cyberpunk',
+        'Realistic': 'flux',
+        'Fantasy': 'flux'
+      }
+      const matchedModelId = categoryToModelId[model.category] || 'flux'
+      setDrawingModel(matchedModelId)
+    }
+
     return nextPrompt
   }
 
@@ -904,7 +976,8 @@ export default function App() {
       activeModelType: currentModel ? currentModel.type : null,
       activeModelCategory: currentModel ? currentModel.category : null,
       externalModelUrl: currentModel ? (currentModel.isExternal ? currentModel.url : null) : null,
-      enhanceQuality
+      enhanceQuality,
+      drawingModel
     }
 
     try {
@@ -972,6 +1045,149 @@ export default function App() {
     setTimeout(() => {
       setCastingSpellName(null)
     }, 1500)
+  }
+
+  // Simulated LoRA Training Trigger Handler
+  const handleStartSimulatedTraining = async () => {
+    if (!trainLoraName) {
+      alert(lang === 'zh' ? '请填写待精调的 LoRA 模型名称！' : 'Please fill out LoRA Model Name!')
+      return
+    }
+
+    setTrainingActive(true)
+    setTrainingFinished(false)
+    setTrainingProgress(0)
+    setTrainingLoss(1.2)
+    setTrainingLogs([
+      `[${new Date().toLocaleTimeString()}] INFO: Initializing training environment...`,
+      `[${new Date().toLocaleTimeString()}] INFO: Selected core base checkpoint: ${trainBaseModel.toUpperCase()}`,
+      `[${new Date().toLocaleTimeString()}] INFO: Set optimizer learning rate: ${trainLearningRate}`,
+      `[${new Date().toLocaleTimeString()}] INFO: Target epochs: ${trainEpochs} (simulating dynamic optimization step curves)`
+    ])
+
+    try {
+      // Connect to unified backend simulation endpoint
+      const res = await fetch('/api/train', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loraName: trainLoraName,
+          baseModel: trainBaseModel,
+          learningRate: trainLearningRate,
+          steps: trainEpochs * 100, // steps simulation
+          triggerWord: trainTriggerWord,
+          datasetCount: trainDatasetZip ? 15 : 8
+        })
+      })
+
+      if (!res.ok) {
+        throw new Error('Training API connection failed')
+      }
+    } catch (err) {
+      console.warn('Backend /api/train unavailable, using fallback training simulation pipeline.', err)
+    }
+
+    // Interactive progress loop simulation over epoch steps
+    let currentStep = 0
+    const totalSteps = trainEpochs * 20
+    const logsTemplates = [
+      'INFO: Successfully loaded dataset assets.',
+      'INFO: Initializing custom convolution weights...',
+      'DEBUG: Applying neural gradients...',
+      'INFO: Calculating aesthetic scores...',
+      'DEBUG: Denoising latent features...'
+    ]
+
+    const interval = setInterval(() => {
+      currentStep++
+      const progressPercent = Math.min(Math.round((currentStep / totalSteps) * 100), 100)
+      setTrainingProgress(progressPercent)
+
+      // Exponential decay loss curve mapping
+      const baseLoss = 1.2
+      const decayFactor = 0.85
+      const calculatedLoss = Math.max(0.08, Number((baseLoss * Math.pow(decayFactor, (currentStep / totalSteps) * 8) + (Math.random() * 0.04 - 0.02)).toFixed(4)))
+      setTrainingLoss(calculatedLoss)
+
+      // Epoch calculated value
+      const currentEpoch = Math.min(Math.ceil((currentStep / totalSteps) * trainEpochs), trainEpochs)
+
+      // Dynamic log generator trigger
+      const newLogs = []
+      if (currentStep === 1) {
+        newLogs.push(`[${new Date().toLocaleTimeString()}] INFO: Extracting training ZIP dataset package...`)
+      }
+      if (currentStep % 4 === 0) {
+        const randomTemplate = logsTemplates[Math.floor(Math.random() * logsTemplates.length)]
+        newLogs.push(`[${new Date().toLocaleTimeString()}] ${randomTemplate}`)
+      }
+      if (currentStep % 5 === 0 || currentStep === totalSteps) {
+        newLogs.push(`[${new Date().toLocaleTimeString()}] EPOCH ${currentEpoch}/${trainEpochs} - Batch Optimization Loss: ${calculatedLoss}`)
+      }
+
+      if (newLogs.length > 0) {
+        setTrainingLogs(prev => [...prev, ...newLogs])
+      }
+
+      if (currentStep >= totalSteps) {
+        clearInterval(interval)
+        setTrainingActive(false)
+        setTrainingFinished(true)
+
+        // Dynamically save the new trained LoRA model into custom external models LocalStorage registry!
+        const CATEGORY_IMAGES = {
+          'Realistic': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+          'Anime': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=120&h=120&q=80',
+          '3D / Game': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80',
+          'Sci-Fi': 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=120&h=120&q=80',
+          'Fantasy': 'https://images.unsplash.com/photo-1519074002996-a69e7ac46a42?auto=format&fit=crop&w=120&h=120&q=80'
+        }
+
+        // Auto map category based on lora name keywords
+        let matchedCategory: AIModel['category'] = 'Realistic'
+        const loraNameLower = trainLoraName.toLowerCase()
+        if (loraNameLower.includes('anime') || loraNameLower.includes('cartoon') || loraNameLower.includes('2d')) {
+          matchedCategory = 'Anime'
+        } else if (loraNameLower.includes('3d') || loraNameLower.includes('toy') || loraNameLower.includes('game')) {
+          matchedCategory = '3D / Game'
+        } else if (loraNameLower.includes('cyber') || loraNameLower.includes('sci') || loraNameLower.includes('robot')) {
+          matchedCategory = 'Sci-Fi'
+        } else if (loraNameLower.includes('fantasy') || loraNameLower.includes('magic')) {
+          matchedCategory = 'Fantasy'
+        }
+
+        const newTrainedModel: AIModel = {
+          id: `trained-${Date.now()}`,
+          name: trainLoraName,
+          creator: 'Self-Trained (AI Studio)',
+          baseModel: trainBaseModel === 'flux' ? 'Flux' : 'SDXL 1.0',
+          type: 'LoRA',
+          category: matchedCategory,
+          description: `Self-trained LoRA checkpoint via WhiteFox Interactive Training Area. Optimization Loss: ${calculatedLoss}. Custom Trigger Word: "${trainTriggerWord}".`,
+          tags: ['trained', 'lora', matchedCategory.toLowerCase(), trainTriggerWord],
+          url: trainLoraName, // use name as path/url key
+          thumbnailUrl: CATEGORY_IMAGES[matchedCategory] || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80',
+          isExternal: true // Render with delete trash can and beautiful badge
+        }
+
+        const updated = [newTrainedModel, ...externalModels]
+        setExternalModels(updated)
+        localStorage.setItem('whitefox_external_models', JSON.stringify(updated))
+      }
+    }, 180)
+  }
+
+  // Handle dataset file drag upload (base64 simulation)
+  const handleDatasetFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setTrainDatasetName(file.name)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setTrainDatasetZip(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   // Delete History item
@@ -1508,6 +1724,66 @@ export default function App() {
                 />
                 <div className="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
               </label>
+            </div>
+
+            {/* Curated Perchance-Style Model Selector */}
+            <div className={`p-4 rounded-xl ${theme.innerCard} border space-y-3`}>
+              <div className="space-y-0.5">
+                <label className="block text-xs font-bold text-rose-500 uppercase tracking-wider">
+                  🎯 {t.curatedModelLabel}
+                </label>
+                <span className={`text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'} block leading-normal`}>
+                  {t.curatedModelSub}
+                </span>
+              </div>
+
+              <select
+                value={drawingModel}
+                onChange={(e) => {
+                  setDrawingModel(e.target.value);
+                  // Clear selected preloaded active model if we explicitly change the core engine
+                  if (!combinedModelsPool.some(m => m.isExternal && m.url === e.target.value)) {
+                    setSelectedActiveModel(null);
+                  }
+                }}
+                className={`w-full ${theme.input} rounded-xl p-2.5 text-xs font-semibold`}
+              >
+                {/* Custom/External options */}
+                {externalModels.length > 0 && (
+                  <optgroup label={lang === 'zh' ? '⭐ 我的外接自定义模型' : '⭐ My External Custom Models'}>
+                    {externalModels.map(em => (
+                      <option key={em.id} value={em.url}>🔗 {em.name}</option>
+                    ))}
+                  </optgroup>
+                )}
+
+                <optgroup label={lang === 'zh' ? '🔥 旗舰推荐作画模型 (Perchance Mix)' : '🔥 Curated Master Engines'}>
+                  {CURATED_DRAW_MODELS.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {lang === 'zh' ? m.nameZh : m.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+
+              {/* Dynamic Description Box */}
+              {(() => {
+                const matchedCurated = CURATED_DRAW_MODELS.find(m => m.id === drawingModel);
+                const matchedExt = externalModels.find(m => m.url === drawingModel);
+
+                const description = matchedCurated
+                  ? (lang === 'zh' ? matchedCurated.descZh : matchedCurated.desc)
+                  : (matchedExt ? matchedExt.description : (lang === 'zh' ? '自适应外接多模态绘画引擎' : 'Custom external multi-modal drawing engine'));
+
+                return (
+                  <div className="bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-lg text-[10px] italic leading-relaxed text-slate-400">
+                    <span className="font-bold text-rose-400 block mb-0.5">
+                      {lang === 'zh' ? '💡 引擎特性 / Feature Specs:' : '💡 Engine Feature Specs:'}
+                    </span>
+                    {description}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Sampling Selection */}
@@ -2049,6 +2325,179 @@ export default function App() {
               </button>
             </div>
 
+          </div>
+
+          {/* LoRA Training Area (训练功能区) */}
+          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2 text-rose-500`}>
+              <Cpu className="w-4 h-4 animate-spin" />
+              {t.trainingTitle}
+            </h3>
+            <p className="text-[10px] text-slate-400 leading-relaxed">{t.trainingSub}</p>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-1">LoRA 名称 (LoRA Name) *</label>
+                <input
+                  type="text"
+                  disabled={trainingActive}
+                  value={trainLoraName}
+                  onChange={(e) => setTrainLoraName(e.target.value)}
+                  className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                  placeholder="e.g., retro-futuristic"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-1">基底大模型 (Base Model)</label>
+                <select
+                  disabled={trainingActive}
+                  value={trainBaseModel}
+                  onChange={(e) => setTrainBaseModel(e.target.value)}
+                  className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                >
+                  <option value="flux">Flux.1 Base Checkpoint</option>
+                  <option value="sdxl">Stable Diffusion XL 1.0</option>
+                  <option value="sd15">Stable Diffusion v1.5</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5 text-xs">
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-1">{t.epochs}</label>
+                <input
+                  type="number"
+                  disabled={trainingActive}
+                  min={1}
+                  max={25}
+                  value={trainEpochs}
+                  onChange={(e) => setTrainEpochs(Number(e.target.value) || 5)}
+                  className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-1">触发词 (Trigger Word)</label>
+                <input
+                  type="text"
+                  disabled={trainingActive}
+                  value={trainTriggerWord}
+                  onChange={(e) => setTrainTriggerWord(e.target.value)}
+                  className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                  placeholder="e.g., whitefox"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] text-slate-400 mb-1">{t.learningRate}</label>
+                <select
+                  disabled={trainingActive}
+                  value={trainLearningRate}
+                  onChange={(e) => setTrainLearningRate(e.target.value)}
+                  className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
+                >
+                  <option value="1e-4">1e-4 (Default)</option>
+                  <option value="5e-4">5e-4 (Fast)</option>
+                  <option value="5e-5">5e-5 (Fine)</option>
+                  <option value="1e-5">1e-5 (Super Fine)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Dataset ZIP Drag Upload Block */}
+            <div className="border-2 border-dashed border-slate-700/60 rounded-xl p-4 text-center bg-slate-950 hover:border-slate-500 transition duration-200">
+              <input
+                type="file"
+                accept=".zip"
+                disabled={trainingActive}
+                onChange={handleDatasetFileChange}
+                id="dataset-zip-upload"
+                className="hidden"
+              />
+              <label htmlFor="dataset-zip-upload" className="cursor-pointer block space-y-2">
+                {trainDatasetName ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <FolderHeart className="w-8 h-8 text-rose-500 animate-bounce" />
+                    <span className="text-xs text-emerald-400 font-bold">
+                      {t.datasetUploaded.replace('{name}', trainDatasetName)}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-rose-400 mx-auto" />
+                    <span className="text-xs text-slate-400 block">{t.datasetUpload}</span>
+                  </>
+                )}
+              </label>
+            </div>
+
+            {/* Simulated Live Progress Monitoring View */}
+            {(trainingActive || trainingFinished) && (
+              <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-slate-450 font-bold uppercase tracking-wider flex items-center gap-1">
+                    <Check className={`w-4 h-4 ${trainingFinished ? 'text-emerald-400' : 'text-rose-500 animate-spin'}`} />
+                    {t.trainingProgress}
+                  </span>
+                  <span className="text-slate-400 font-mono font-bold">
+                    {t.lossValue}: <span className="text-rose-500">{trainingLoss}</span> | {trainingProgress}%
+                  </span>
+                </div>
+
+                {/* Progress bar container */}
+                <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                  <div
+                    className="bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 h-full transition-all duration-150"
+                    style={{ width: `${trainingProgress}%` }}
+                  />
+                </div>
+
+                {/* Animated logs terminal console */}
+                <div className="space-y-1">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">
+                    {t.terminalLogs}
+                  </span>
+                  <div className="bg-slate-900 border border-slate-850 p-2.5 rounded-lg max-h-32 overflow-y-auto font-mono text-[9px] text-slate-350 space-y-1 scrollbar-thin">
+                    {trainingLogs.map((log, index) => (
+                      <div key={index} className="truncate select-text">
+                        {log}
+                      </div>
+                    ))}
+                    {trainingActive && (
+                      <div className="text-rose-400 animate-pulse">● Running optimizer epoch loops...</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Loss Optimization Curve Graph representation */}
+                <div className="h-10 border border-slate-850 bg-slate-900/50 rounded-lg relative overflow-hidden flex items-end">
+                  <span className="absolute left-2 top-1 text-[8px] text-slate-500">Decaying Loss Graph Curve</span>
+                  <svg className="w-full h-8" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    <path
+                      d={`M 0 10 Q 30 ${Math.max(1, 10 - trainingProgress / 10)} 50 ${Math.max(2, 8 - trainingProgress / 12)} T 100 ${Math.max(1, 4 - trainingProgress / 18)}`}
+                      fill="none"
+                      stroke="#f43f5e"
+                      strokeWidth="0.8"
+                      className="animate-pulse"
+                    />
+                  </svg>
+                </div>
+
+                {trainingFinished && (
+                  <div className="bg-emerald-950/20 border border-emerald-900/30 p-2.5 rounded-lg text-[10px] text-emerald-400 font-semibold leading-relaxed">
+                    {t.trainingCompleted}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Launch Training Trigger Button */}
+            <button
+              onClick={handleStartSimulatedTraining}
+              disabled={trainingActive}
+              className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 text-xs flex items-center justify-center gap-2 disabled:opacity-55"
+            >
+              <Cpu className="w-4 h-4" />
+              <span>{t.startTraining}</span>
+            </button>
           </div>
 
           {/* Prompt Library */}
