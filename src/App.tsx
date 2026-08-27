@@ -532,14 +532,14 @@ export default function App() {
   // Drawing mode
   const [drawMode, setDrawMode] = useState<'txt2img' | 'img2img' | 'reference'>('txt2img')
 
-  // Core Drawing states
-  const [prompt, setPrompt] = useState('A beautiful white fox in a celestial starlit night, unreal engine 5 render, highly detailed, fantasy.')
-  const [negativePrompt, setNegativePrompt] = useState('blurry, deformed, low quality, extra limbs, bad anatomy, bad hands, logo, text')
-  const [selectedSize, setSelectedSize] = useState('512x512')
-  const [customWidth, setCustomWidth] = useState('512')
-  const [customHeight, setCustomHeight] = useState('512')
+  // Core Drawing states - Default high-res & high-quality parameters
+  const [prompt, setPrompt] = useState('A majestic white fox with glowing crystal fur standing in a mystical starry celestial forest, 8k resolution, masterpiece, best quality, ultra-detailed photorealistic render, cinematic lighting, sharp focus, octane render.')
+  const [negativePrompt, setNegativePrompt] = useState('blurry, low quality, worst quality, lowres, noise, artifacts, distorted, bad anatomy, bad hands, extra limbs, deformed, ugly, bad face, text, watermark, signature')
+  const [selectedSize, setSelectedSize] = useState('1024x1024')
+  const [customWidth, setCustomWidth] = useState('1024')
+  const [customHeight, setCustomHeight] = useState('1024')
   const [sampler, setSampler] = useState('Euler a')
-  const [steps, setSteps] = useState(25)
+  const [steps, setSteps] = useState(35)
   const [cfgScale, setCfgScale] = useState(7.5)
   const [seed, setSeed] = useState(-1)
   const [enhanceQuality, setEnhanceQuality] = useState(true)
@@ -714,13 +714,13 @@ export default function App() {
 
   // Reset to default configurations
   const handleRestoreDefaults = () => {
-    setPrompt('A beautiful white fox in a celestial starlit night, unreal engine 5 render, highly detailed, fantasy.')
-    setNegativePrompt('blurry, deformed, low quality, extra limbs, bad anatomy, bad hands, logo, text')
-    setSelectedSize('512x512')
-    setCustomWidth('512')
-    setCustomHeight('512')
+    setPrompt('A majestic white fox with glowing crystal fur standing in a mystical starry celestial forest, 8k resolution, masterpiece, best quality, ultra-detailed photorealistic render, cinematic lighting, sharp focus, octane render.')
+    setNegativePrompt('blurry, low quality, worst quality, lowres, noise, artifacts, distorted, bad anatomy, bad hands, extra limbs, deformed, ugly, bad face, text, watermark, signature')
+    setSelectedSize('1024x1024')
+    setCustomWidth('1024')
+    setCustomHeight('1024')
     setSampler('Euler a')
-    setSteps(25)
+    setSteps(35)
     setCfgScale(7.5)
     setSeed(-1)
     setProvider('free')
@@ -1311,7 +1311,7 @@ export default function App() {
     : ['#0f172a', '#1e1b4b', '#1c1917', '#111827']
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 pb-16 ${theme.bodyText}`} style={{ backgroundColor: bgColor }}>
+    <div className={`min-h-screen transition-colors duration-500 pb-24 lg:pb-16 ${theme.bodyText}`} style={{ backgroundColor: bgColor }}>
 
       {/* Header Bar */}
       <header className={`${theme.headerBg} sticky top-0 z-50 px-4 py-3 shadow-sm`}>
@@ -1803,22 +1803,22 @@ export default function App() {
             {/* Aspect Size Toggle */}
             <div>
               <label className="block text-xs text-slate-400 mb-2">{t.generationSize}</label>
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 {[
-                  { label: '1:1 (512)', value: '512x512' },
-                  { label: '3:4 (512)', value: '512x682' },
-                  { label: '4:3 (512)', value: '682x512' },
-                  { label: '16:9 (SD)', value: '768x432' },
                   { label: '1:1 (1024)', value: '1024x1024' },
                   { label: '3:4 (1024)', value: '768x1024' },
                   { label: '4:3 (1024)', value: '1024x768' },
+                  { label: '16:9 (HD)', value: '1280x720' },
+                  { label: '1:1 (512)', value: '512x512' },
+                  { label: '3:4 (512)', value: '512x682' },
+                  { label: '4:3 (512)', value: '682x512' },
                   { label: '自定义 Size', value: 'custom' }
                 ].map((sizeOpt) => (
                   <button
                     key={sizeOpt.value}
                     type="button"
                     onClick={() => setSelectedSize(sizeOpt.value)}
-                    className={`p-1.5 text-[10px] font-medium border rounded-lg transition-all ${selectedSize === sizeOpt.value ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}`}
+                    className={`py-2 px-1.5 text-[11px] font-medium border rounded-lg transition-all touch-manipulation active:scale-95 ${selectedSize === sizeOpt.value ? 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}`}
                   >
                     {sizeOpt.label}
                   </button>
@@ -2641,6 +2641,34 @@ export default function App() {
         </section>
 
       </main>
+
+      {/* Floating Sticky Action Bar for Mobile Viewports */}
+      <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 px-4 py-2.5 shadow-2xl flex items-center gap-3">
+        <div className="flex-1 truncate">
+          <span className="text-[10px] text-slate-400 block truncate font-medium">
+            {prompt || t.positivePromptPlaceholder}
+          </span>
+          <span className="text-[9px] text-rose-400 font-bold flex items-center gap-1">
+            <Sparkles className="w-2.5 h-2.5" />
+            {steps} {t.steps} | {selectedSize}
+          </span>
+        </div>
+        <button
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            handleGenerateArt()
+          }}
+          disabled={generating || !prompt}
+          className="bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 active:scale-95 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition text-xs flex items-center gap-1.5 shrink-0 touch-manipulation"
+        >
+          {generating ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Play className="w-4 h-4 fill-white" />
+          )}
+          <span>{t.generateBtn}</span>
+        </button>
+      </div>
 
     </div>
   )
