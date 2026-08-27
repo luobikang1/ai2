@@ -31,7 +31,13 @@ import {
   Zap,
   Flame,
   Sun,
-  Moon
+  Moon,
+  Copy,
+  RotateCcw,
+  Dices,
+  Monitor,
+  Smartphone,
+  Square
 } from 'lucide-react'
 import { ALL_MODELS, AIModel } from './modelsData'
 
@@ -1516,18 +1522,59 @@ export default function App() {
                   <Sparkles className="w-3.5 h-3.5 text-rose-500" />
                   {t.positivePrompt}
                 </label>
-                {/* Save Prompt Quick Button */}
-                <button
-                  onClick={() => {
-                    setNewPromptName(`My Prompt - ${new Date().toLocaleTimeString()}`)
-                    setNewPromptContent(prompt)
-                    alert('已填充到下方的提示词库添加栏！')
-                  }}
-                  className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex items-center gap-1 transition"
-                >
-                  <Bookmark className="w-3 h-3" />
-                  {t.savePrompt}
-                </button>
+
+                {/* Mainstream Quick Action Toolbar */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      const presets = [
+                        'A futuristic cyberpunk fox in rainy Neo-Tokyo, 8k resolution, cinematic lighting, masterpiece, octane render',
+                        'An exquisite watercolor painting of a white fox in a serene Kyoto cherry blossom garden, soft sunlight, masterpiece',
+                        'A photorealistic portrait of an arctic fox in snowy mountains, National Geographic quality, 85mm lens, sharp focus',
+                        'A 3D Pixar animated chibi fox figurine, PopMart clay style, glossy pastel lighting, cute expression'
+                      ]
+                      setPrompt(presets[Math.floor(Math.random() * presets.length)])
+                    }}
+                    title="随机启发灵感"
+                    className="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md flex items-center gap-1 transition border border-slate-800"
+                  >
+                    <Dices className="w-3 h-3 text-amber-400" />
+                    <span>灵感</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(prompt)
+                      alert('已复制提示词到剪贴板！')
+                    }}
+                    title="复制提示词"
+                    className="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md flex items-center gap-1 transition border border-slate-800"
+                  >
+                    <Copy className="w-3 h-3 text-sky-400" />
+                    <span>复制</span>
+                  </button>
+
+                  <button
+                    onClick={() => setPrompt('')}
+                    title="清空提示词"
+                    className="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md flex items-center gap-1 transition border border-slate-800"
+                  >
+                    <RotateCcw className="w-3 h-3 text-rose-400" />
+                    <span>清空</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setNewPromptName(`My Prompt - ${new Date().toLocaleTimeString()}`)
+                      setNewPromptContent(prompt)
+                      alert('已填充到下方的提示词库添加栏！')
+                    }}
+                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded flex items-center gap-1 transition"
+                  >
+                    <Bookmark className="w-3 h-3" />
+                    {t.savePrompt}
+                  </button>
+                </div>
               </div>
               <textarea
                 value={prompt}
