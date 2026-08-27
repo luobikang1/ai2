@@ -357,7 +357,29 @@ app.post('/api/generate', async (c) => {
         'sdxl': 'hf-sdxl',
         'sd15': 'hf-sd15',
         'animagine': 'hf-animagine',
-        'playground': 'hf-playground'
+        'playground': 'hf-playground',
+        // 30 Internet Popular Models Mappings with Execution Guarantees
+        'realvis': 'pollinations-flux',
+        'dreamshaper': 'pollinations-flux',
+        'counterfeit': 'pollinations-anime',
+        'absolute-reality': 'pollinations-flux',
+        'rev-animated': 'pollinations-3d',
+        'anything-v5': 'pollinations-anime',
+        'deliberate': 'pollinations-flux',
+        'realistic-vision': 'pollinations-flux',
+        'meinamix': 'pollinations-anime',
+        'midjourney-style': 'pollinations-flux',
+        'majicmix': 'pollinations-flux',
+        'ghost-mix': 'pollinations-niche',
+        'synthwave-retro': 'pollinations-niche',
+        'disney-pixar': 'pollinations-3d',
+        'chinese-ink': 'pollinations-flux',
+        'fantasy-world': 'pollinations-flux',
+        'ghibli-style': 'pollinations-anime',
+        'dalle3-hd': 'pollinations-flux',
+        'chibi-blindbox': 'pollinations-3d',
+        'architectural': 'pollinations-flux',
+        'oil-painting': 'pollinations-flux'
       }
 
       if (modelMap[drawingModel]) {

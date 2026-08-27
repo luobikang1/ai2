@@ -464,12 +464,51 @@ const INITIAL_PROMPTS = [
   { id: '4', name: '3D 盲盒玩具公仔', category: '3D Art', content: 'Chibi white fox toy figurine, cute expression, glossy vinyl material, 3D render, clay model style, pastel colors background, soft studio lighting.' }
 ]
 
+// 30 Internet Popular Models Dataset with Auto-Matching Categories
+const POPULAR_30_MODELS = [
+  { id: 'flux', name: 'Flux.1 Schnell/Dev', category: 'Realistic', tag: '写实/极高画质' },
+  { id: 'realvis', name: 'RealVisXL V4.0', category: 'Realistic', tag: '电影级写实' },
+  { id: 'absolute-reality', name: 'AbsoluteReality v1.8.1', category: 'Realistic', tag: '写实肖像摄影' },
+  { id: 'deliberate', name: 'Deliberate v3.0', category: 'Realistic', tag: '通用全能写实' },
+  { id: 'realistic-vision', name: 'Realistic Vision V6.0', category: 'Realistic', tag: '拟真人像皮肤' },
+  { id: 'majicmix', name: 'majicMIX realistic', category: 'Realistic', tag: '亚洲面孔人像' },
+
+  { id: 'anime', name: 'Anime Dream Illustrator', category: 'Anime', tag: '唯美日系手绘' },
+  { id: 'animagine', name: 'Animagine XL v3.1', category: 'Anime', tag: '专业二次元画师' },
+  { id: 'counterfeit', name: 'Counterfeit v3.0', category: 'Anime', tag: '高清动漫插画' },
+  { id: 'anything-v5', name: 'Anything V5 / Ink', category: 'Anime', tag: '极速二次元混合' },
+  { id: 'meinamix', name: 'MeinaMix V11', category: 'Anime', tag: 'Q版萌系与精致人像' },
+  { id: 'ghibli-style', name: 'Studio Ghibli Aesthetic', category: 'Anime', tag: '宫崎骏风水彩' },
+
+  { id: '3d', name: 'Pixar 3D Clay render', category: '3D / Game', tag: '皮克斯粘土公仔' },
+  { id: 'rev-animated', name: 'ReV Animated V2', category: '3D / Game', tag: '2.5D游戏与3D场景' },
+  { id: 'disney-pixar', name: 'Disney Animation 3D', category: '3D / Game', tag: '迪士尼3D动画' },
+  { id: 'chibi-blindbox', name: 'Chibi PopMart Blindbox', category: '3D / Game', tag: '泡泡玛特盲盒手办' },
+
+  { id: 'cyberpunk', name: 'Cyberpunk Tech Neon', category: 'Sci-Fi', tag: '赛博朋克科幻' },
+  { id: 'ghost-mix', name: 'GhostMix Mecha & Cyber', category: 'Sci-Fi', tag: '科幻机甲与机器人' },
+  { id: 'synthwave-retro', name: 'Synthwave 80s Retro', category: 'Sci-Fi', tag: '复古电子合成波' },
+
+  { id: 'dreamshaper', name: 'DreamShaper XL', category: 'Fantasy', tag: '魔幻原画概念' },
+  { id: 'fantasy-world', name: 'Fantasy Realm Magic', category: 'Fantasy', tag: '奇幻魔法仙境' },
+
+  { id: 'playground', name: 'Playground v2.5 Aesthetic', category: 'Artistic', tag: '前沿艺术设计' },
+  { id: 'sdxl', name: 'SDXL Base Official 1.0', category: 'Artistic', tag: '官方旗舰高清底模' },
+  { id: 'sd15', name: 'Stable Diffusion v1.5', category: 'Artistic', tag: '经典百搭万能底模' },
+  { id: 'midjourney-style', name: 'Midjourney v6 Master', category: 'Artistic', tag: 'MJ v6光影视觉' },
+  { id: 'dalle3-hd', name: 'DALL-E 3 Precision Engine', category: 'Artistic', tag: '精准指令响应' },
+  { id: 'chinese-ink', name: 'Traditional Chinese Ink', category: 'Artistic', tag: '国风水墨手绘' },
+  { id: 'oil-painting', name: 'Impressionist Oil Canvas', category: 'Artistic', tag: '印象派大师油画' },
+  { id: 'architectural', name: 'Architectural Visualizer', category: 'Artistic', tag: '现代建筑室内设计' },
+  { id: 'turbo', name: 'Pollinations Speed Sketch', category: 'Realistic', tag: '极速秒级拟真' }
+]
+
 // Curated Perchance-style models list
 const CURATED_DRAW_MODELS = [
   { id: 'flux', name: 'Flux.1 (Highly-Detailed Realism Masterpiece)', nameZh: 'Flux.1 (极高画质旗舰写实模型)', desc: 'The state-of-the-art cinematic detailed realism model.', descZh: '当前最先进的电影级画质细节写实旗舰模型。' },
   { id: 'turbo', name: 'Pollinations Turbo (Speed Sketch)', nameZh: 'Turbo 高速微调模型 (速度优先)', desc: 'High-speed optimized model for super fast sketching.', descZh: '极限速度优化版大模型，适合极速作画与草图拟真。' },
   { id: 'anime', name: 'Anime Dream Illustrator (2D / Cute Art)', nameZh: '二次元动漫幻想画师 (2D/萌系)', desc: 'Lovely dynamic Japanese anime style character art.', descZh: '色彩唯美绚丽的日系动漫手绘与高颜值立绘插画。' },
-  { id: '3d', name: 'Pixar 3D Animation (Clay stop-motion)', nameZh: '皮克斯 3D 动画公仔 (粘土风)', desc: 'Lovable clay toys and 3D cartoon rendered figurines.', descZh: '制作极富立体质感的 3D 盲盒玩具公仔与皮克斯粘土角色。' },
+  { id: '3d', name: 'Pixar 3D Animation (Clay stop-motion)', nameZh: 'Pixar 3D 动画公仔 (粘土风)', desc: 'Lovable clay toys and 3D cartoon rendered figurines.', descZh: '制作极富立体质感的 3D 盲盒玩具公仔与皮克斯粘土角色。' },
   { id: 'cyberpunk', name: 'Cyberpunk Tech Neon Glow (Sci-Fi Futuristic)', nameZh: '赛博朋克霓虹光影 (科幻未来)', desc: 'Futuristic mecha and holographic neon futuristic art.', descZh: '充满未来科技感的赛博朋克机甲与绚丽全息光束特效。' },
   { id: 'sdxl', name: 'Stable Diffusion XL Base 1.0 (High Resolution)', nameZh: 'SDXL 1.0 官方原生高清基模', desc: 'The official SDXL high-fidelity versatile engine.', descZh: 'SDXL 官方原生高分辨率多功能核心引擎。' },
   { id: 'playground', name: 'Playground v2.5 (Aesthetic Design Engine)', nameZh: 'Playground v2.5 (前沿艺术设计)', desc: 'Versatile artistic textures and layout graphics.', descZh: '极具现代艺术感染力与杰出质感纹理的前沿设计引擎。' },
@@ -1784,6 +1823,37 @@ export default function App() {
                   </div>
                 );
               })()}
+            </div>
+
+            {/* 30 Popular Internet Models Fast Matcher Section */}
+            <div className={`p-4 rounded-xl ${theme.innerCard} border space-y-3`}>
+              <div className="flex justify-between items-center border-b border-slate-800/80 pb-2">
+                <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5 uppercase tracking-wider">
+                  🔥 30大流行模型自动匹配选择器
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                  30 Active Options
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                {POPULAR_30_MODELS.map((pm) => (
+                  <button
+                    key={pm.id}
+                    onClick={() => {
+                      setDrawingModel(pm.id);
+                      alert(lang === 'zh' ? `已成功匹配并选择流行模型：${pm.name}` : `Successfully matched model: ${pm.name}`);
+                    }}
+                    className={`p-1.5 rounded-lg border text-left text-[10px] transition-all flex flex-col justify-between ${drawingModel === pm.id ? 'bg-gradient-to-r from-amber-500/20 to-rose-500/20 border-amber-500 text-white font-bold shadow' : 'bg-slate-900 border-slate-850 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}
+                  >
+                    <span className="truncate block font-semibold">{pm.name}</span>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-[8px] bg-white/5 px-1 py-0.2 rounded text-slate-500">{pm.category}</span>
+                      <span className="text-[8px] text-amber-400 font-bold">{pm.tag}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Sampling Selection */}
