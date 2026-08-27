@@ -349,48 +349,50 @@ app.post('/api/generate', async (c) => {
     if (drawingModel) {
       console.log(`[Dynamic Drawing Model] Selected model: ${drawingModel}`)
       const modelMap = {
-        'flux': 'pollinations-flux',
-        'turbo': 'pollinations-turbo',
-        'anime': 'pollinations-anime',
-        '3d': 'pollinations-3d',
-        'cyberpunk': 'pollinations-niche',
-        'sdxl': 'hf-sdxl',
-        'sd15': 'hf-sd15',
-        'animagine': 'hf-animagine',
-        'playground': 'hf-playground',
-        // 30 Internet Popular Models Mappings with Execution Guarantees
-        'realvis': 'pollinations-flux',
-        'dreamshaper': 'pollinations-flux',
-        'counterfeit': 'pollinations-anime',
-        'absolute-reality': 'pollinations-flux',
-        'rev-animated': 'pollinations-3d',
-        'anything-v5': 'pollinations-anime',
-        'deliberate': 'pollinations-flux',
-        'realistic-vision': 'pollinations-flux',
-        'meinamix': 'pollinations-anime',
-        'midjourney-style': 'pollinations-flux',
-        'majicmix': 'pollinations-flux',
-        'ghost-mix': 'pollinations-niche',
-        'synthwave-retro': 'pollinations-niche',
-        'disney-pixar': 'pollinations-3d',
-        'chinese-ink': 'pollinations-flux',
-        'fantasy-world': 'pollinations-flux',
-        'ghibli-style': 'pollinations-anime',
-        'dalle3-hd': 'pollinations-flux',
-        'chibi-blindbox': 'pollinations-3d',
-        'architectural': 'pollinations-flux',
-        'oil-painting': 'pollinations-flux'
+        'flux': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', photorealistic cinematic lighting, ultra-detailed 8k' },
+        'turbo': { apiId: 'pollinations-turbo', pollinationsModel: 'turbo', styleSuffix: ', fast sketch render' },
+        'anime': { apiId: 'pollinations-anime', pollinationsModel: 'anime', styleSuffix: ', masterpiece anime artwork, vibrant colors, detailed 2d illustration' },
+        '3d': { apiId: 'pollinations-3d', pollinationsModel: '3d', styleSuffix: ', pixar 3d cartoon render, clay stop motion texture, soft studio lighting' },
+        'cyberpunk': { apiId: 'pollinations-niche', pollinationsModel: 'cyberpunk', styleSuffix: ', cyberpunk tech neon glow, futuristic holographic overlay, mechanical details' },
+        'sdxl': { apiId: 'hf-sdxl', pollinationsModel: 'flux', styleSuffix: ', sdxl high-fidelity official base' },
+        'sd15': { apiId: 'hf-sd15', pollinationsModel: 'flux', styleSuffix: ', stable diffusion v1.5 style' },
+        'animagine': { apiId: 'hf-animagine', pollinationsModel: 'anime', styleSuffix: ', animagine xl v3.1 high definition anime' },
+        'playground': { apiId: 'hf-playground', pollinationsModel: 'flux', styleSuffix: ', playground v2.5 aesthetic design' },
+        // 30 Internet Popular Models Mapping Table with Execution Guarantees
+        'realvis': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', realvisxl v4.0 photographic realism, 85mm portrait lens, sharp focus' },
+        'dreamshaper': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', dreamshaper xl fantasy concept art, digital painting, glowing atmosphere' },
+        'counterfeit': { apiId: 'pollinations-anime', pollinationsModel: 'anime', styleSuffix: ', counterfeit v3.0 anime illustration, soft shading, beautiful eyes' },
+        'absolute-reality': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', absolute reality photography, detailed skin texture, natural sunlight' },
+        'rev-animated': { apiId: 'pollinations-3d', pollinationsModel: '3d', styleSuffix: ', rev animated 2.5d game render, vibrant contrast, stylized 3d character' },
+        'anything-v5': { apiId: 'pollinations-anime', pollinationsModel: 'anime', styleSuffix: ', anything v5 anime mix, dynamic pose, colourful background' },
+        'deliberate': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', deliberate v3 realism, refined composition, high contrast lighting' },
+        'realistic-vision': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', realistic vision v6.0 studio lighting, 8k portrait photography' },
+        'meinamix': { apiId: 'pollinations-anime', pollinationsModel: 'anime', styleSuffix: ', meinamix cute anime character, soft pastel colors, detailed face' },
+        'midjourney-style': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', midjourney v6 aesthetic style, volumetric godrays, epic composition' },
+        'majicmix': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', majicmix realistic portrait photography, natural skin pores, high fidelity' },
+        'ghost-mix': { apiId: 'pollinations-niche', pollinationsModel: 'cyberpunk', styleSuffix: ', ghostmix sci-fi mecha, cybernetic circuitry, metallic texture' },
+        'synthwave-retro': { apiId: 'pollinations-niche', pollinationsModel: 'cyberpunk', styleSuffix: ', synthwave 80s retro neon grid, hot pink horizon, vintage graphics' },
+        'disney-pixar': { apiId: 'pollinations-3d', pollinationsModel: '3d', styleSuffix: ', disney pixar 3d animation render, charming character, studio lighting' },
+        'chinese-ink': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', traditional chinese ink painting wash, elegant watercolor strokes, guofeng aesthetic' },
+        'fantasy-world': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', fantasy realm magic flora, enchanted forest, glowing particles' },
+        'ghibli-style': { apiId: 'pollinations-anime', pollinationsModel: 'anime', styleSuffix: ', studio ghibli anime aesthetic, painterly scenery, soft clouds' },
+        'dalle3-hd': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', dall-e 3 precision vector render, clean lines, high resolution' },
+        'chibi-blindbox': { apiId: 'pollinations-3d', pollinationsModel: '3d', styleSuffix: ', popmart chibi blindbox toy figurine, vinyl glossy finish, pastel background' },
+        'architectural': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', architectural visualization, modern interior design, natural ambient occlusion' },
+        'oil-painting': { apiId: 'pollinations-flux', pollinationsModel: 'flux', styleSuffix: ', impressionist oil painting canvas, thick palette knife strokes, masterpiece' }
       }
 
-      if (modelMap[drawingModel]) {
-        targetApiId = modelMap[drawingModel]
+      const config = modelMap[drawingModel]
+      if (config) {
+        targetApiId = config.apiId
+        if (config.styleSuffix && !drivenPrompt.includes(config.styleSuffix)) {
+          drivenPrompt += config.styleSuffix
+        }
       } else if (drawingModel.includes('/') && !drawingModel.startsWith('http')) {
         // It's a custom Hugging Face repository model path!
         isDynamicHuggingFace = true
         dynamicHuggingFaceUrl = `https://api-inference.huggingface.co/models/${drawingModel}`
         console.log(`[Dynamic Drawing Model] Custom Hugging Face path detected: ${dynamicHuggingFaceUrl}`)
-      } else {
-        // Fall back to category mapping or custom pollinations weights
       }
     }
 
@@ -424,9 +426,10 @@ app.post('/api/generate', async (c) => {
       }
       const encodedPrompt = encodeURIComponent(finalPrompt)
 
-      // Determine actual pollinations model parameter
+      // Determine actual pollinations model parameter (strictly validate against Pollinations supported models: flux, turbo, anime, 3d, cyberpunk)
+      const POLLINATIONS_VALID_MODELS = ['flux', 'turbo', 'anime', '3d', 'cyberpunk']
       let activePollinationsModel = selectedApi.model || 'flux'
-      if (drawingModel && !isDynamicHuggingFace && !FREE_APIS.some(api => api.id === drawingModel)) {
+      if (POLLINATIONS_VALID_MODELS.includes(drawingModel)) {
         activePollinationsModel = drawingModel
       }
 
