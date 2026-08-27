@@ -1346,8 +1346,8 @@ export default function App() {
   }
 
   const bgPresets = isLight
-    ? ['#f8fafc', '#f1f5f9', '#f5f3ff', '#fff1f2']
-    : ['#0f172a', '#1e1b4b', '#1c1917', '#111827']
+    ? ['#ffffff', '#f8fafc', '#f1f5f9', '#f5f3ff', '#fff1f2']
+    : ['#000000', '#0f172a', '#1e1b4b', '#1c1917', '#111827']
 
   return (
     <div className={`min-h-screen transition-colors duration-500 pb-24 lg:pb-16 ${theme.bodyText}`} style={{ backgroundColor: bgColor }}>
@@ -1571,30 +1571,6 @@ export default function App() {
 
           </div>
 
-          {/* Spell Selector Section (提示词魔法施法器) */}
-          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-3`}>
-            <h3 className={`text-sm font-bold flex items-center gap-2 text-purple-400 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2`}>
-              <Flame className="w-4 h-4" />
-              {t.spellTitle}
-            </h3>
-            <p className="text-[10px] text-slate-400 leading-relaxed">{t.spellSub}</p>
-
-            <div className="grid grid-cols-2 gap-2">
-              {MAGICAL_SPELLS.map((spell) => (
-                <button
-                  key={spell.id}
-                  onClick={() => castSpell(spell)}
-                  className={`p-2.5 border rounded-xl text-left text-xs transition duration-200 flex flex-col justify-between h-20 ${spell.class}`}
-                >
-                  <span className="font-bold block truncate">{spell.name.split(' ')[1]}</span>
-                  <span className="text-[9px] text-slate-500 line-clamp-1 italic">{spell.modifiers.substring(2)}</span>
-                  <span className="text-[8px] bg-white/5 px-1.5 py-0.5 rounded text-right mt-1 font-bold tracking-wider hover:bg-white/10 uppercase block w-max self-end">
-                    {t.spellCastBtn}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Model & Platform API Configuration */}
           <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
@@ -2056,6 +2032,36 @@ export default function App() {
               </button>
             </div>
 
+            {/* Embedded Model Selection Dropdown Inside Action Card */}
+            <div className={`p-3 rounded-xl ${theme.innerCard} border space-y-2`}>
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-bold text-rose-500 uppercase tracking-wider flex items-center gap-1">
+                  🎯 选择作画模型 (Drawing Model)
+                </label>
+                <span className="text-[9px] text-slate-500">Multi-Model Engine</span>
+              </div>
+              <select
+                value={drawingModel}
+                onChange={(e) => setDrawingModel(e.target.value)}
+                className={`w-full ${theme.input} rounded-lg p-2 text-xs font-semibold`}
+              >
+                <optgroup label="🔥 30大热门流行作画模型">
+                  {POPULAR_30_MODELS.map((pm) => (
+                    <option key={pm.id} value={pm.id}>
+                      [{pm.category}] {pm.name} - {pm.tag}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="⭐ 旗舰推荐核心模型">
+                  {CURATED_DRAW_MODELS.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {lang === 'zh' ? m.nameZh : m.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+
             {/* Big Trigger Button */}
             <button
               onClick={() => handleGenerateArt()}
@@ -2068,334 +2074,6 @@ export default function App() {
 
           </div>
 
-          {/* Model Hub Section (500 preloaded models, 20 visible search options) */}
-          <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
-            <div className={`border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`}>
-              <div>
-                <h3 className="text-sm font-bold flex items-center gap-2 text-rose-400">
-                  <Layers className="w-4 h-4" />
-                  {t.modelHubTitle}
-                </h3>
-                <p className={`text-[10px] ${theme.textDesc} mt-1`}>{t.modelHubSub}</p>
-              </div>
-
-              {/* Add Custom/External Model Toggle Button */}
-              <button
-                onClick={() => setShowExtForm(!showExtForm)}
-                className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow self-start sm:self-auto shrink-0"
-              >
-                {showExtForm ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                <span>{t.externalModelBtn}</span>
-              </button>
-            </div>
-
-            {/* Collapsible Add External Model Form */}
-            {showExtForm && (
-              <div className={`${theme.innerCard} p-4 rounded-xl space-y-3 border`}>
-                <h4 className={`text-xs font-bold ${isLight ? 'text-slate-800' : 'text-slate-200'} flex items-center gap-1.5 border-b ${isLight ? 'border-slate-200' : 'border-slate-800'} pb-1.5`}>
-                  <Plus className="w-3.5 h-3.5 text-rose-400" />
-                  {t.externalModelTitle}
-                </h4>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelName} *</label>
-                    <input
-                      type="text"
-                      value={extName}
-                      onChange={(e) => setExtName(e.target.value)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                      placeholder={lang === 'zh' ? '输入自定义模型名称' : 'e.g., OpenJourney v4'}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelUrl} *</label>
-                    <input
-                      type="text"
-                      value={extUrl}
-                      onChange={(e) => setExtUrl(e.target.value)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                      placeholder={t.extModelUrlPlaceholder}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelType}</label>
-                    <select
-                      value={extType}
-                      onChange={(e) => setExtType(e.target.value as any)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                    >
-                      <option value="Checkpoint">Checkpoint</option>
-                      <option value="LoRA">LoRA</option>
-                      <option value="Style">Style</option>
-                      <option value="Textual Inversion">Textual Inversion</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelCategory}</label>
-                    <select
-                      value={extCategory}
-                      onChange={(e) => setExtCategory(e.target.value as any)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                    >
-                      {['Realistic', 'Anime', '3D / Game', 'Sci-Fi', 'Fantasy', 'Artistic', 'Design'].map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelTags}</label>
-                    <input
-                      type="text"
-                      value={extTags}
-                      onChange={(e) => setExtTags(e.target.value)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                      placeholder="e.g., retro, anime, realistic"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">{t.extModelThumb}</label>
-                    <input
-                      type="text"
-                      value={extThumb}
-                      onChange={(e) => setExtThumb(e.target.value)}
-                      className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                      placeholder="https://example.com/thumb.jpg (Optional)"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-slate-400 mb-1">{t.extModelDesc}</label>
-                  <textarea
-                    value={extDesc}
-                    onChange={(e) => setExtDesc(e.target.value)}
-                    rows={2}
-                    className={`w-full ${theme.input} rounded-lg p-2 text-xs`}
-                    placeholder={lang === 'zh' ? '输入该模型的详细参数和特征描述' : 'Describe the characteristics of this model'}
-                  />
-                </div>
-
-                <div className="flex gap-2 justify-end pt-1">
-                  <button
-                    onClick={() => setShowExtForm(false)}
-                    className="px-3 py-1.5 border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs rounded-lg transition"
-                  >
-                    {t.extCancelBtn}
-                  </button>
-                  <button
-                    onClick={handleSaveExternalModel}
-                    className="px-4 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-lg transition shadow"
-                  >
-                    {t.extSaveBtn}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Bookmarked/Saved Models Mini-Section */}
-            {bookmarkedModelsList.length > 0 && (
-              <div className={`${theme.innerCard} p-3 rounded-xl border space-y-2`}>
-                <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                  <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
-                  {t.savedModelsTitle}
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {bookmarkedModelsList.map((bm) => (
-                    <div
-                      key={bm.id}
-                      className="bg-slate-900 border border-slate-800 px-2 py-1 rounded-lg text-[10px] flex items-center gap-1.5 hover:border-slate-600 transition"
-                    >
-                      <button
-                        onClick={() => applyModelToGenerator(bm)}
-                        className="font-semibold text-slate-200 hover:text-white"
-                      >
-                        {bm.name}
-                      </button>
-                      <button
-                        onClick={() => toggleSaveModel(bm.id)}
-                        className="text-slate-500 hover:text-rose-450"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Search Bar & Categories */}
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  value={modelsSearch}
-                  onChange={(e) => setModelsSearch(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  className={`w-full ${theme.input} rounded-xl py-2.5 pl-9 pr-4 text-xs`}
-                />
-              </div>
-
-              {/* Filters */}
-              <div className="flex flex-wrap gap-1.5 text-[10px]">
-                {['All', 'Realistic', 'Anime', '3D / Game', 'Sci-Fi', 'Fantasy', 'Artistic', 'Design'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-2.5 py-1 rounded transition-colors ${selectedCategory === cat ? 'bg-rose-500 text-white font-bold' : isLight ? 'bg-slate-100 text-slate-600 hover:text-slate-950 border border-slate-200' : 'bg-slate-950 text-slate-400 hover:text-slate-100 border border-slate-850'}`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              {/* Sub filters */}
-              <div className={`flex flex-wrap gap-1 text-[9px] ${isLight ? 'text-slate-500 border-t border-slate-200 pt-1.5' : 'text-slate-400 border-t border-slate-850/60 pt-1.5'}`}>
-                <span className="mr-1 py-0.5">{t.modelType}:</span>
-                {['All', 'Checkpoint', 'LoRA', 'Style', 'Textual Inversion'].map((tp) => (
-                  <button
-                    key={tp}
-                    onClick={() => setSelectedType(tp)}
-                    className={`px-1.5 py-0.5 rounded ${selectedType === tp ? 'border border-rose-500/50 text-rose-500 font-bold' : 'hover:text-rose-450'}`}
-                  >
-                    {tp}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Models rendering (Exactly 20 visible items with real generated preview images) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
-              {currentVisibleModels.map((model) => {
-                const isSaved = savedModelIds.includes(model.id);
-                const isActive = selectedActiveModel?.id === model.id;
-                const isTranslated = translatedModelIds.includes(model.id);
-
-                // Toggle translation for this model card
-                const toggleTranslate = () => {
-                  if (isTranslated) {
-                    setTranslatedModelIds(prev => prev.filter(id => id !== model.id));
-                  } else {
-                    setTranslatedModelIds(prev => [...prev, model.id]);
-                  }
-                };
-
-                const categoryLabel = isTranslated ? translateToChinese(model.category) : model.category;
-                const typeLabel = isTranslated ? translateToChinese(model.type) : model.type;
-                const displayDescription = isTranslated ? translateToChinese(model.description) : model.description;
-
-                return (
-                  <div
-                    key={model.id}
-                    className={`border p-3 rounded-xl flex gap-3 transition-all ${isActive ? 'border-emerald-500 bg-emerald-500/5 shadow-md' : isLight ? 'bg-slate-50 border-slate-200 hover:border-slate-300 text-slate-850' : 'bg-slate-950 border-slate-850 hover:border-slate-700'}`}
-                  >
-                    {/* Model sample generation preview thumbnail image */}
-                    <img
-                      src={model.thumbnailUrl}
-                      alt={model.name}
-                      className="w-14 h-14 rounded-lg object-cover border border-slate-700 shrink-0 self-start"
-                      loading="lazy"
-                    />
-
-                    <div className="flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start gap-1 mb-1">
-                          <span className={`text-[11px] font-bold ${isLight ? 'text-slate-800' : 'text-slate-100'} truncate max-w-[120px]`}>{model.name}</span>
-                          <div className="flex gap-1 shrink-0 items-center">
-                            {/* Translation Trigger Button */}
-                            <button
-                              onClick={toggleTranslate}
-                              className={`text-[9px] px-1.5 py-0.5 rounded transition font-semibold border ${isTranslated ? 'bg-rose-500/15 border-rose-500/30 text-rose-500' : isLight ? 'bg-white border-slate-250 text-slate-600 hover:text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'}`}
-                            >
-                              {isTranslated ? t.translatedLabel : t.oneClickTranslate}
-                            </button>
-                            <button
-                              onClick={() => toggleSaveModel(model.id)}
-                              className={`p-1 rounded hover:bg-slate-800/20 transition ${isSaved ? 'text-rose-500' : 'text-slate-500'}`}
-                            >
-                              <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-rose-500' : ''}`} />
-                            </button>
-                            {model.isExternal && (
-                              <button
-                                onClick={(e) => handleDeleteExternalModel(model.id, e)}
-                                className="p-1 rounded hover:bg-red-500/15 text-red-500 transition"
-                                title={t.deleteModelTooltip}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1 mb-1.5">
-                          {model.isExternal && (
-                            <span className="text-[8px] bg-amber-500/15 text-amber-500 border border-amber-500/30 px-1 py-0.1 rounded-md font-bold">
-                              {t.externalBadge}
-                            </span>
-                          )}
-                          <span className="text-[8px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1 py-0.1 rounded-md font-bold">{typeLabel}</span>
-                          <span className="text-[8px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1 py-0.1 rounded-md font-bold">{model.baseModel}</span>
-                          <span className="text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1 py-0.1 rounded-md font-bold">{categoryLabel}</span>
-                        </div>
-
-                        <p className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-450'} line-clamp-2 italic mb-2 leading-relaxed`}>{displayDescription}</p>
-                      </div>
-
-                      <div className="flex flex-col gap-2 border-t border-slate-800/40 pt-2 mt-auto">
-                        <span className={`text-[9px] ${isLight ? 'text-slate-400' : 'text-slate-500'} truncate`}>{t.author}: {model.creator}</span>
-                        <div className="flex gap-1.5">
-                          <button
-                            onClick={() => applyModelToGenerator(model)}
-                            className={`flex-1 text-[9px] ${theme.btnSecondary} py-1 rounded transition font-medium`}
-                          >
-                            {t.applyModel}
-                          </button>
-
-                          <button
-                            onClick={() => handleModelApplyAndGenerate(model)}
-                            className="flex-1 text-[9px] bg-gradient-to-r from-rose-500 to-amber-550 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-1 rounded flex items-center justify-center gap-0.5 transition"
-                          >
-                            <Zap className="w-2.5 h-2.5 fill-white" />
-                            <span>{t.applyAndGenerate}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="flex justify-between items-center bg-slate-950 p-2 rounded-xl border border-slate-850 text-xs">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="bg-slate-900 hover:bg-slate-850 text-slate-300 disabled:opacity-40 px-2.5 py-1 rounded transition"
-              >
-                {t.prevPage}
-              </button>
-              <span className="text-slate-400 text-[10px] font-mono">
-                {t.pageIndicator.replace('{current}', currentPage.toString()).replace('{total}', totalPages.toString())}
-                {` (共 ${filteredModels.length} 项)`}
-              </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="bg-slate-900 hover:bg-slate-850 text-slate-300 disabled:opacity-40 px-2.5 py-1 rounded transition"
-              >
-                {t.nextPage}
-              </button>
-            </div>
-
-          </div>
 
           {/* LoRA Training Area (训练功能区) */}
           <div className={`${theme.card} rounded-2xl p-5 shadow-lg space-y-4`}>
@@ -2713,10 +2391,10 @@ export default function App() {
       </main>
 
       {/* Floating Sticky Action Bar for Mobile Viewports */}
-      <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 px-4 py-2.5 shadow-2xl flex items-center gap-3">
+      <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden bg-slate-950/95 backdrop-blur-lg border-t border-slate-800/90 px-3 py-2 shadow-2xl flex items-center gap-2">
         <div className="flex-1 truncate">
-          <span className="text-[10px] text-slate-400 block truncate font-medium">
-            {prompt || t.positivePromptPlaceholder}
+          <span className="text-[10px] text-slate-300 block truncate font-semibold">
+            模型: {POPULAR_30_MODELS.find(m => m.id === drawingModel)?.name || drawingModel}
           </span>
           <span className="text-[9px] text-rose-400 font-bold flex items-center gap-1">
             <Sparkles className="w-2.5 h-2.5" />
@@ -2729,7 +2407,7 @@ export default function App() {
             handleGenerateArt()
           }}
           disabled={generating || !prompt}
-          className="bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 active:scale-95 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition text-xs flex items-center gap-1.5 shrink-0 touch-manipulation"
+          className="bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 active:scale-95 text-white font-bold py-2.5 px-5 rounded-xl shadow-lg transition text-xs flex items-center gap-1.5 shrink-0 touch-manipulation min-h-[42px]"
         >
           {generating ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
